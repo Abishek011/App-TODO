@@ -1,0 +1,33 @@
+{
+  "name": "app-todo",
+  "version": "1.0.0",
+  "description": "\"TODO task - App\"",
+  "main": "app.js",
+  "dependencies": {
+    "aws-sdk": "^2.800.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^10.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abishek011/App-TODO.git"
+  },
+  "keywords": [
+    "TODO",
+    "task",
+    "App"
+  ],
+  "author": "Raj",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Abishek011/App-TODO/issues"
+  },
+  "homepage": "https://github.com/Abishek011/App-TODO#readme"
+}
