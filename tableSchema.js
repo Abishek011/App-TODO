@@ -5,18 +5,12 @@ var user = {
     TableName: 'Users',
     KeySchema: [
         {
-            AttributeName: 'userName', KeyType: 'HASH'
-        },
-        {
-            AttributeName: 'password', KeyType: 'RANGE'
+            AttributeName: 'userId', KeyType: 'HASH'
         }
     ],
     AttributeDefinitions: [
         {
-            AttributeName: 'userName', AttributeType: "S"
-        },
-        {
-            AttributeName: 'password', AttributeType: "S"
+            AttributeName: 'userId', AttributeType: "N"
         }
     ],
     ProvisionedThroughput: {       
