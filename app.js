@@ -123,7 +123,7 @@ route.get("/getUserInfo", async ctx => {
 });
 
 //POST
-route.post("/signIn", verifyToken, async (ctx) => {
+route.post("/signUp", verifyToken, async (ctx) => {
     jwt.verify(ctx.token, 'secretkey', (err, authData) => {
         if (err) {
             ctx.throw(403);
@@ -185,7 +185,7 @@ async function verifyToken(ctx, next) {
     }
 }
 //POST - signUp to user
-route.post("/signUp", async (ctx) => {
+route.post("/getToken", async (ctx) => {
     var signUpDetails = ctx.query;
     console.log(signUpDetails);
 
