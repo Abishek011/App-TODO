@@ -9,11 +9,17 @@ const app = new koa();
 //Koa-Router
 const route = new router();
 
+//JWT 
+const jwt = require('jsonwebtoken');
+
 //Aws - sdk
 const aws = require('aws-sdk');
 
-//JWT 
-const jwt = require('jsonwebtoken');
+//password encription using bcrypt
+const bcrypt = require('bcrypt');
+
+//saltrounds for costing
+const saltRounds = 10;
 
 //Configuring the database..
 aws.config.update({
@@ -23,13 +29,9 @@ aws.config.update({
     endpoint: "http://localhost:8000"
 });
 
-//Getting schema from the file..
-var tableSchema = require('./tableSchema');
 
 //Port number
 var port = process.env.PORT || 3000;
-
-console.log(tableSchema);
 
 //bodyParse (koa)
 app.use(bodyParser());
@@ -43,30 +45,61 @@ app.use(route.routes()).use(route.allowedMethods());
 //Configuring dynamoDB from aws
 var dataBase = new aws.DynamoDB();
 
+//Document client for dynamodb
+var docClient = new AWS.DynamoDB.DocumentClient();
+
 //console.log(dataBase.listTables());
 
-//Table Creation
-dataBase.createTable(tableSchema.user, (err, data) => {
-    if (err) {
-        console.error("Unable to create table Error JSON:", JSON.stringify(err, null, 2));
-    }
-    else {
-        console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
-    }
-});
-
-//GET
-route.post("/users", verifyToken, async (ctx) => {
+//POST
+route.post("/signIn", verifyToken, async (ctx) => {
     jwt.verify(ctx.token, 'secretkey', (err, authData) => {
+        var ctxBody='';
         if (err) {
             ctx.throw(403);
         } else {
+            
+            const hashedPassword=bcrypt.hashSync(authData.signUpDetails.password, saltRounds);
+            
+            console.log(hashedPassword);
+            var params = {
+                TableName: 'Users',
+                Item: {
+                    'userName':  {S:""+authData.signUpDetails.name},
+                    'password':  {S:""+hashedPassword}
+                }
+            };
+            dataBase.putItem(params,ctxBody=(err,data) => {
+                if(err)
+                {
+                    console.log("Error while inserting data to database "+err);
+                }else{
+                    console.log("Added item:", JSON.stringify(params,null,2));
+                }
+            });
+            var param = {
+                TableName: 'Users',
+                KeyConditionExpression: "#uname = :S",
+                ExpressionAttributeNames:{
+                    "#uname": "userName"
+                },
+                ExpressionAttributeValues: {
+                    ":S": authData.signUpDetails.name
+                }
+            };
+            dataBase.getItem(param, function(err, data) {
+                if (err) {
+                    console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                    ctxBody+=("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
+                    ctxBody+=("GetItem succeeded:", JSON.stringify(data, null, 2));
+                }
+            });
             ctx.body = {
-                msg: "post called",
-                authData
+                Sucess: `User ${authData.signUpDetails.name} added to database`,
+                msg: ctxBody
             }
         }
-
     });
 });
 
@@ -83,19 +116,20 @@ async function verifyToken(ctx, next) {
     }
 }
 //POST - signUp to user
-route.post("/signUp", signUp);
-async function signUp(ctx) {
+route.post("/signUp", async (ctx) => {
     var signUpDetails = ctx.query;
     console.log(signUpDetails);
 
     //Defining jwt-sign
-    jwt.sign({ signUpDetails }, 'secretkey', (err, token) => {
-        {
+    jwt.sign({ signUpDetails }, 'secretkey',async (err,token,tokenFlag) => {
+        if(err){
+            console.error("Error in signup");
+        }else{
             console.log(token);
-        }
+        }  
     });
-    ctx.body = { msg: "Token generated" };
-}
+    ctx.body = { msg: "Token generated "};
+});
 
 
 
