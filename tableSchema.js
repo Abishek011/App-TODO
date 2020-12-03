@@ -5,10 +5,10 @@ var user = {
     TableName: 'Users',
     KeySchema: [
         {
-            AttributeName: 'userId', KeyType: 'HASH'
+            AttributeName: 'emailId', KeyType: 'HASH'
         },
         {
-            AttributeName: 'emailId', KeyType: 'RANGE'
+            AttributeName: 'userId', KeyType: 'RANGE'
         }
     ],
     AttributeDefinitions: [
