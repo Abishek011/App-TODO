@@ -6,11 +6,17 @@ var user = {
     KeySchema: [
         {
             AttributeName: 'userId', KeyType: 'HASH'
+        },
+        {
+            AttributeName: 'emailId', KeyType: 'RANGE'
         }
     ],
     AttributeDefinitions: [
         {
-            AttributeName: 'userId', AttributeType: "N"
+            AttributeName: 'userId', AttributeType: "S"
+        },
+        {
+            AttributeName: 'emailId', AttributeType: 'S'
         }
     ],
     ProvisionedThroughput: {       

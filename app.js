@@ -21,6 +21,9 @@ const aws = require('aws-sdk');
 //password encription using bcrypt
 const bcrypt = require('bcrypt');
 
+//UUID Url-friendly Unique Id for userid
+const {v4:uuid4} =require('uuid');
+
 //saltrounds for costing
 const saltRounds = 10;
 
@@ -55,15 +58,20 @@ var docClient = new aws.DynamoDB.DocumentClient();
 
 //POST - create table
 route.post('/createTable', async (ctx) => {
+    return new Promise((resolve, reject) => {
     dataBase.createTable(tableSchema.user, createTable);
     async function createTable(err, data) {
         if (err) {
             console.error("Unable to create table Error JSON:", JSON.stringify(err, null, 2));
+            ctx.body={"Unable to create table Error JSON:": err};
         }
         else {
             console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+            ctx.body={"Created table. Table description JSON:": data};
         }
+        resolve();
     }
+});
 });
 
 //DELETE - deleteTable
@@ -72,50 +80,60 @@ route.delete('/deleteTable', async ctx => {
     var params = {
         TableName: "Users"
     };
-
+    return new Promise((resolve, reject) => {
     dataBase.deleteTable(params, deleteTable);
     function deleteTable(err, data) {
         if (err) {
             console.error("Unable to delete table. Error JSON:", JSON.stringify(err, null, 2));
+            ctx.body={"Unable to delete table. Error JSON:": JSON.stringify(err, null, 2)};
         } else {
             console.log("Deleted table. Table description JSON:", JSON.stringify(data, null, 2));
+            ctx.body={"Deleted table. Table description JSON:": JSON.stringify(data, null, 2)};
         }
+        resolve();
     }
+    });
 });
 
 //POSt - logIn
-route.post('/logIn', ctx => {
-    var userName = ctx.query.id;
+route.post('/logIn',ctx => {
+    var emailId = (ctx.query.emailId);
     var password = ctx.query.password;
+    /* jwt.verify(ctx.token,'secretkey',async (err,data)=>{
+        console.log(data);
+    }); */
     var param = {
         TableName: 'Users',
-        KeyConditionExpression: "#uid = :N",
-        ExpressionAttributeNames: {
-            "#uid": "userId"
-        },
-        ExpressionAttributeValues: {
-            ":N": userId
-        }
+        Key: { 'emailId': ""+emailId }
     };
-    docClient.query(param, function (err, data) {
-        if (err) {
-            console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-        } else {
-            console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
-            //data.Items[0].
-        }
-    });
+    return new Promise((resolve, reject) => {
+        docClient.get(param, (err, data) => {
+            if (err) {
+                console.log("Error while fetching data" + err);
+            } else {
+                if (bcrypt.compareSync(password, data.Item.password)) {
+                    console.log("data", JSON.stringify(data, null, 2));
+                    ctx.body = { "LogIn sucessfull for User: ": data };
+                    
+                } else {
+                    ctx.body = { msg: "LogIn failed check password " };
+                }
+                resolve();
+            }
+        })
+    }
+    );
 });
 
 //GET user Details
 route.get("/getUserInfo", async ctx => {
     var param = {
         TableName: 'Users',
-        Key:{'userId':Number(ctx.query.id)}  
+        Key: { 'emailId': Number(ctx.query.emailId) }
     };
     docClient.get(param, (err, data) => {
         if (err) {
-            console.log("Error while fetching data"+err);
+            console.log("Error while fetching data" + err);
         } else {
             console.log("data", JSON.stringify(data, null, 2));
         }
@@ -123,54 +141,42 @@ route.get("/getUserInfo", async ctx => {
 });
 
 //POST
-route.post("/signUp", verifyToken, async (ctx) => {
-    jwt.verify(ctx.token, 'secretkey', (err, authData) => {
+route.post("/signUp", async (ctx) => {
+    /* jwt.verify(ctx.token, 'secretkey', (err, authData) => {
         if (err) {
             ctx.throw(403);
-        } else {
+        } else { 
+        }*/
+    //Hashing using bcrypt..
+    const hashedPassword = bcrypt.hashSync(ctx.query.password, saltRounds);
 
-            //Hashing using bcrypt..
-            const hashedPassword = bcrypt.hashSync(authData.signUpDetails.password, saltRounds);
-
-            // console.log(hashedPassword);
-            var params = {
-                TableName: 'Users',
-                Item: {
-                    'userId': { N: "" + authData.signUpDetails.id },
-                    'password': { S: "" + hashedPassword }
-                },
-                //KeyConditionExpression: attribute_not_exists(authData.signUpDetails.id)
-            };
-            dataBase.putItem(params, ctxBody = (err, data) => {
-                if (err) {
-                    console.log("Error while inserting data to database " + err);
-                } else {
-                    console.log("Added item:", JSON.stringify(params, null, 2));
-                }
-            });
-            var param = {
-                TableName: 'Users',
-                KeyConditionExpression: "#uid = :N",
-                ExpressionAttributeNames: {
-                    "#uid": "userId"
-                },
-                ExpressionAttributeValues: {
-                    ":N": Number(authData.signUpDetails.id)
-                }
-            };
-            docClient.query(param, function (err, data) {
-                if (err) {
-                    console.error("Unable to read item. Error JSON:", JSON.stringify(err, null, 2));
-                } else {
-                    console.log("GetItem succeeded:", JSON.stringify(data, null, 2));
-                }
-            });
-            ctx.body = {
-                Sucess: `User ID: ${authData.signUpDetails.id} added to database`,
+    console.log(hashedPassword);
+    var params = {
+        TableName: 'Users',
+        Item: {
+            'emailId': { S: "" + ctx.query.emailId },
+            'userId' : { S: ""+ uuid4()},
+            'password': { S:  "" + hashedPassword }
+        },
+    };
+    return new Promise((resolve, reject) => {
+        dataBase.putItem(params, ctxBody = (err, data) => {
+            if (err) {
+                console.log("Error while inserting data to database " + err);
+                ctx.body = { "Error while inserting data to database ": err };
+            } else {
+                console.log("Added item:", JSON.stringify(params, null, 2));
+                ctx.body = { "Added item:": params },
+                    { Sucess: `User ${ctx.query.emailId} added to database` };
             }
-        }
+            resolve();
+        });
     });
 });
+/* 
+async function verifyUserId(ctx,next){
+
+} */
 
 async function verifyToken(ctx, next) {
     //getting token from header
@@ -190,14 +196,17 @@ route.post("/getToken", async (ctx) => {
     console.log(signUpDetails);
 
     //Defining jwt-sign
-    jwt.sign({ signUpDetails }, 'secretkey', async (err, token) => {
-        if (err) {
-            console.error("Error in signup");
-        } else {
-            console.log(token);
-        }
+    return new Promise((resolve, reject) => {
+        jwt.sign({ signUpDetails }, 'secretkey', async (err, token) => {
+            if (err) {
+                console.error("Error in signup");
+            } else {
+                console.log(token);
+                ctx.body = { "Token generated ": token }
+                resolve();
+            }
+        });
     });
-    ctx.body = { msg: "Token generated " };
 });
 
 
