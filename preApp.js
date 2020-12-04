@@ -23,6 +23,7 @@ const bcrypt = require('bcrypt');
 
 //UUID Url-friendly Unique Id for userid
 const { v4: uuid4 } = require('uuid');
+const { reject } = require("bcrypt/promises");
 
 //saltrounds for costing
 const saltRounds = 10;
@@ -57,25 +58,25 @@ var docClient = new aws.DynamoDB.DocumentClient();
 //console.log(dataBase.listTables());
 
 //POST - create table
-route.post('/createTable', async (ctx) => {
-    return new Promise((resolve, reject) => {
-        dataBase.createTable(tableSchema.user, createTable);
-        async function createTable(err, data) {
-            if (err) {
-                console.error("Unable to create table Error JSON:", JSON.stringify(err, null, 2));
-                ctx.body = { "Unable to create table Error JSON:": err };
-            }
-            else {
-                console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
-                ctx.body = { "Created table. Table description JSON:": data };
-            }
-            resolve();
+route.post('/createTable', (ctx)=>{
+    return new Promise((resolve,reject)=>{
+    dataBase.createTable(tableSchema.user, createTable);
+    function createTable(err, data) {
+        if (err) {
+            console.error("Unable to create table Error JSON:", JSON.stringify(err, null, 2));
+            ctx.throw(409,'Unable to create table');
         }
-    });
+        else {
+            console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+            ctx.body = { Message : "Table created" };
+        }
+        resolve();
+    }
+});
 });
 
 //DELETE - deleteTable
-route.delete('/deleteTable', async ctx => {
+route.delete('/deleteTable',ctx => {
     //table to be deleted...
     var params = {
         TableName: "Users"
@@ -88,7 +89,7 @@ route.delete('/deleteTable', async ctx => {
                 ctx.body = { "Unable to delete table. Error JSON:": err };
             } else {
                 console.log("Deleted table. Table description JSON:", JSON.stringify(data, null, 2));
-                ctx.body = { "Deleted table. Table description JSON:": data };
+                ctx.body = { Message : "Table Created" };
             }
             resolve();
         }
@@ -96,57 +97,39 @@ route.delete('/deleteTable', async ctx => {
 });
 
 //POST - add task
-route.post("/addTask", verifyToken, (ctx) => {
-    jwt.verify(ctx.token, 'secretkey', (err, authData) => {
-        if (err) {
-            ctx.body = { msg: "Error while verifying the token err : " + err };
-        } else {
-            console.log(authData);
-            var emailId = authData.tokenPayLoad.emailId;
-            var userId = authData.tokenPayLoad.userId;
-            var taskName = ctx.query.task;
-            var taskDescription = ctx.query.description;
-            var params = {
-                TableName: 'Users',
-                Key: {
+route.post('/addTask',verifyToken,(ctx)=>{
 
-                    "emailId": emailId,
-                    "userId": userId
-                },
-                UpdateExpression: "set #Task=list_append(#Task, :taskm)",
-                ExpressionAttributeNames: {
-                    '#Task': "Task"
-                },
-                ExpressionAttributeValues: {
-                    ":taskm": [({
-                        "task-id": uuid4(),
-                        "task-name": taskName,
-                        "task-description": taskDescription,
-                        "task-added-time": Date.now()
-                    })]
-                },
-                ReturnValues: "ALL_NEW"
-            };
-            /* params.Item.Tasks.push(
-                {
-                    "task-id":uuid4(),
-                    "task-name":taskName,
-                    "task-description":taskDescription,
-                    "task-added-time":Date.now()
-                }); */
-
-            //Update the task list with new tasks
-            docClient.update(params, function (err, data) {
-                if (err) {
-                    console.error("Unable to add task. Error JSON:", JSON.stringify(err, null, 2));
-                } else {
-                    console.log("Added task:", data);
-                }
-            });
-            //ctx.body={data:ctx.cookie.get("data")};
-        }
-    });
 });
+
+//verifying token - [Add Task]
+function verifyToken(){
+    
+}
+//DELETE - task
+route.delete("/deleteTask",verifyDelete,(ctx)=>{
+    ctx.body={"msg":ctx.authData};
+});
+
+//verify token before delete
+function verifyDelete(ctx,next){
+    const bearerHeader = ctx.headers['authorization'];
+
+    //Check if type is undefined 
+    if (typeof bearerHeader !== 'undefined') {
+        ctx.token =bearerHeader.split(' ')[1];
+        jwt.verify(ctx.token, 'secretkey',async (err, authData)=>{
+            if(err)
+            {
+                ctx.body={"msg err : ":err};
+            }
+            else{
+                ctx.authData=authData;
+                next();
+            }
+        });
+    }
+
+}
 
 //POST - logIn
 route.post('/logIn', ctx => {
@@ -207,7 +190,7 @@ route.post('/logIn', ctx => {
 route.get("/getUserInfo", async ctx => {
     var param = {
         TableName: 'Users',
-        ProjectionExpression: '#ur,password,userId',
+        ProjectionExpression: '#ur,password,userId,Task',
         FilterExpression: "#ur = :email",
         ExpressionAttributeNames: {
             "#ur": "emailId"
@@ -249,7 +232,8 @@ route.post("/signUp", duplicateCheck, async (ctx) => {
         docClient.put(params, ctxBody = (err, data) => {
             if (err) {
                 console.log("Error while inserting data to database " + err);
-                ctx.body = { "Error while inserting data to database ": err };
+                ctx.throw(409,'Error while Inserting data');
+                //ctx.body = { "Error while inserting data to database ": err };
             } else {
                 console.log("Added item:", JSON.stringify(params, null, 2));
                 ctx.body = { "Added item:": params },
@@ -266,8 +250,8 @@ async function duplicateCheck(ctx, next) {
 
     var param = {
         TableName: 'Users',
-        ProjectionExpression: '#ur',
-        FilterExpression: "#ur = :email",
+        //ProjectionExpression: '#ur',
+        KeyConditionExpression: "#ur = :email",
         ExpressionAttributeNames: {
             "#ur": "emailId"
         },
@@ -277,51 +261,21 @@ async function duplicateCheck(ctx, next) {
     };
 
     return new Promise((resolve, request) => {
-        docClient.scan(param, async (err, data) => {
+        docClient.query(param, async (err, data) => {
             if (err) {
                 console.log(" : Error while fetching data : " + err);
             } else {
                 if (data.Count >= 1) {
-                    ctx.body = { 401: "User already exist" };
-                    resolve();
+                    ctx.throw();
                 }
-                await next();
+                else{
+                await next();}
                 resolve();
             }
         });
     });
 }
 
-async function verifyToken(ctx, next) {
-    //getting token from 'Authorization' header
-    const bearerHeader = ctx.headers['authorization'];
-
-    //Check if type is undefined 
-    if (typeof bearerHeader !== 'undefined') {
-        ctx.token = bearerHeader.split(' ')[1];
-        await next();
-        ctx.body = { msg: "Task Added" };
-    } else {
-        ctx.throw(401, 'Forbidden');
-    }
-}
-/* 
-function verifyToken(ctx, next) {
-    //return new Promise((resolve,reject)=>{
-    //getting token from header
-    const bearerHeader = ctx.headers['authorization'];
-
-    //Check if type is undefined 
-    if (typeof bearerHeader !== 'undefined') {
-        ctx.token = bearerHeader.split(' ')[1];
-        next();
-        //resolve();
-    } else {
-        ctx.throw(401, 'Forbidden');
-    }
-//});
-}
- */
 //POST - signUp to user
 route.post("/getToken", async (ctx) => {
     var log = ctx.query;
