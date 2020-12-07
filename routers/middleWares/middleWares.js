@@ -46,7 +46,7 @@ async function checkDuplicate(ctx, next) {
             if (err) {
                 console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
                 ctx.status = 401;
-                ctx.body = { "Message": "Query Error" };
+                ctx.body = { "Message : Query Error":err };
             } else {
                 if (Number(data.Count) >= 1) {
                     ctx.status = 409;
