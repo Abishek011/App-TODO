@@ -74,7 +74,9 @@ route.post('/logIn',middleWare.verifyLogIn,routers.logIn);
 
 dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
 
-dashBoard.delete('/deleteTask',routers.deleteTask);
+dashBoard.delete('/deleteTask',middleWare.deleteTask,routers.deleteTask);
+
+dashBoard.get('/viewTask',middleWare.verifyView,routers.viewTask);
 
 app.listen(port,()=>{
     console.log(`listening to port : ${port}`);

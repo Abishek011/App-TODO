@@ -224,20 +224,17 @@ async function checkDuplicateTask(ctx,next){
             next();
         }
         else{
-            var taskFlag=true;/* 
-            console.log(data.Items[0].tasks[0].taskName);
-            var s1=new String(data.Items[0].tasks[0].taskName);
-            var s2=new String(taskName);
-            console.log(taskName,JSON.stringify(s1)==JSON.stringify(s2)); */
+            var taskFlag=true;
+            //console.log({noo:data.Items[0].tasks});
             for(var i=0;i<data.Items[0].tasks.length;i++){
-                //console.log(JSON.stringify(data.Items[0].tasks[i].taskName)==JSON.stringify(taskName));
-                if(data.Items[0].tasks[i].taskName==taskName){
-                    console.log(data.Items[0].tasks[i].taskName==taskName);
+                //console.log(data.Items[0].tasks[i],JSON.stringify(data.Items[0].tasks[i].taskName)==JSON.stringify(taskName));
+                if(new String(data.Items[0].tasks[i].taskName).valueOf()==new String (taskName).valueOf()){
+                    console.log(data.Items[0].tasks[i]);
                     taskFlag=false;
-                    break;
+                  break;
                 }
             }
-            console.log({mmk:taskFlag});
+           // console.log({mmk:taskFlag});
             if(taskFlag){
                 await next();
             }
@@ -251,8 +248,85 @@ async function checkDuplicateTask(ctx,next){
     });}
 }
 
+//
+async function deleteTask(ctx,next){
+    var token=ctx.cookies.get('authToken');
+    var emailId;
+
+    var promiseToken = new Promise((resolve,reject)=>{
+        jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(data);
+            }
+        });
+    });
+    await promiseToken.then(async(data)=>{
+            ctx.verifiedData=data;
+            emailId=data.emailId;
+            await next();
+    }).catch((err)=>{
+        ctx.status=401;
+        ctx.body={Message:"Token expired"};
+    });
+}
+
+//
+async function verifyView(ctx,next){
+    var token=ctx.cookies.get('authToken');
+    var emailId;
+
+    var promiseToken = new Promise((resolve,reject)=>{
+        jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(data);
+            }
+        });
+    });
+    await promiseToken.then((data)=>{
+            ctx.verifiedData=data;
+            emailId=data.emailId;
+    }).catch((err)=>{
+        ctx.status=401;
+        ctx.body={Message:"Token expired"};
+    });
+    if(ctx.status!=401){
+    var taskList ={
+        TableName: 'Users',
+        ProjectionExpression: 'tasks',
+        KeyConditionExpression: '#ur = :email',
+        ExpressionAttributeNames:{
+            '#ur': 'emailId'
+        },
+        ExpressionAttributeValues:{
+            ':email':emailId
+        }
+    }
+    var promiseTask = new Promise((resolve,reject)=>{
+        docClient.query(taskList,(err,data)=>{
+            if(err){
+                reject(err);
+            }
+            else{
+                resolve(data);
+            }
+        });
+    });
+    return promiseTask.then(async (data)=>{
+        await next();
+    }).catch((err)=>{
+        console.log({msg:err});
+    });}
+}
 module.exports = {
     checkDuplicate,
     verifyLogIn,
-    checkDuplicateTask
+    checkDuplicateTask,
+    deleteTask,
+    verifyView
 }

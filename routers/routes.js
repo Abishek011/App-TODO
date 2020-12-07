@@ -163,11 +163,11 @@ var logIn = (ctx) => {
 
 //POST - adding task
 var addTask = (ctx) => {
-    console.log({mmh:ctx.verifiedData});
+    console.log({mmh:ctx.taskData});
     var taskDetails = {
         taskId: uuid4(),
-        taskName: ctx.taskData,
-        taskDescription: ctx.taskDescription,
+        taskName: ctx.taskData.taskName,
+        taskDescription: ctx.taskData.taskDescription,
         taskAddedTime: Date.now(),
     };
     var emailId = ctx.verifiedData.emailId;
@@ -206,9 +206,124 @@ var addTask = (ctx) => {
 };
 
 //DELETE - deleting task
-var deleteTask=(ctx)=>{
-    
+var deleteTask=async (ctx)=>{
+    var deleteTaskName = ctx.request.body.taskName;
+    var emailId= ctx.verifiedData.emailId;
+    var tasks;
+    var userDetails = {
+        TableName: 'Users',
+        ProjectionExpression: 'tasks',
+        KeyConditionExpression: "#email = :email",
+        ExpressionAttributeNames: {
+            "#email": 'emailId',
+        },
+        ExpressionAttributeValues: {
+            ":email": emailId
+        }
+    }
+    var promiseDashBoard = new Promise((resolve, reject) => {
+        docClient.query(userDetails, async (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(data);
+                resolve(data.Items[0].tasks);
+            }
+        });
+    });
+    await promiseDashBoard.then(async(data) => {
+        tasks=data;
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { "Error while accessing dashBoard data": err };
+    });
+    for(var i=0;i<tasks.length;i++){
+        if(new String(tasks[i].taskName).valueOf()==new String(deleteTaskName).valueOf()){
+            tasks.splice(i,1);
+            break;
+        }
+    }
+    var userId = ctx.verifiedData.userId;
+    var params = {
+        TableName: 'Users',
+        Key: {
+            "userId": userId,
+            "emailId": emailId
+        },
+        UpdateExpression: "set #Task=:newTask",
+        ExpressionAttributeNames: {
+            "#Task": 'tasks'
+        },
+        ExpressionAttributeValues: {
+            ":newTask": tasks,
+        },
+        ReturnValues: "UPDATED_NEW"
+    };
+    var promiseAddTask = new Promise((resolve, reject) => {
+        docClient.update(params, (err, data) => {
+            if (err) {
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        });
+    });
+    return promiseAddTask.then((data)=>{
+        ctx.body={Message:"Task deleted successfully",toCheck:"/dashBoard/viewTask"};
+    }).catch((err)=>{
+        ctx.status=409;
+        ctx.body={Error:"problem durinig deletion"};
+        console.log(err);
+    });
 };
+
+//Get - view Tasks
+var viewTask = (ctx)=>{
+    var loggerCredintails = ctx.verifiedData;
+    var userDetails = {
+        TableName: 'Users',
+        ProjectionExpression: 'userId,userName,emailId,tasks',
+        KeyConditionExpression: "#email = :email",
+        ExpressionAttributeNames: {
+            "#email": 'emailId',
+        },
+        ExpressionAttributeValues: {
+            ":email": loggerCredintails.emailId
+        }
+    }
+    var promiseDashBoard = new Promise((resolve, reject) => {
+        docClient.query(userDetails, async (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(data);
+                resolve(data.Items[0]);
+            }
+        });
+    });
+    return promiseDashBoard.then((data) => {
+        const dashBoard = data.tasks;
+        if (data.tasks.length == 0) {
+            dashBoard.tasks = "No Tasks Added Yet";
+        }
+        else {
+            for(var i=0;i<dashBoard.length;i++){
+                dashBoard[i].taskAddedTime=new Date(dashBoard[i].taskAddedTime).toString();
+            }
+        }
+        data.routes = {
+            addTask: "/dashBoard/addtask",
+            removeTask: "/dashBoard/removetask",
+            viewTask: "/dashBoard/viewtasks",
+        }
+        ctx.body = {
+            "dashBoard": dashBoard
+        }
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { "Error while accessing dashBoard data": err };
+    });
+}
 
 //Exporting all routes [createTable , deleteTable , signUp , login]
 module.exports = {
@@ -217,5 +332,6 @@ module.exports = {
     signUp,
     logIn,
     addTask,
-    deleteTask
+    deleteTask,
+    viewTask
 }
