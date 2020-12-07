@@ -15,8 +15,8 @@ var dataBase = new aws.DynamoDB();
 //Document client for dynamodb
 var docClient = new aws.DynamoDB.DocumentClient();
 
-//password encription using bcrypt
-const bcrypt = require('bcrypt');
+//password encription using bcryptjs
+const bcrypt = require('bcryptjs');
 
 //saltrounds for costing
 const saltRounds = 10;
@@ -29,7 +29,6 @@ const jwt = require('jsonwebtoken');
 
 //Getting schema from the file..
 var tableSchema = require('../tableSchema');
-const { reject, promise } = require('bcrypt/promises');
 
 //POST create table
 var createTable = (ctx) => {
