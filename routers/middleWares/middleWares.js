@@ -16,7 +16,7 @@ var dataBase = new aws.DynamoDB();
 var docClient = new aws.DynamoDB.DocumentClient();
 
 //password encription using bcrypt
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 //saltrounds for costing
 const saltRounds = 10;
