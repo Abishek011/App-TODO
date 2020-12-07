@@ -229,7 +229,7 @@ route.post("/signUp", duplicateCheck, async (ctx) => {
         },
     };
     return new Promise((resolve, reject) => {
-        docClient.put(params, ctxBody = (err, data) => {
+        docClient.put(params,  (err, data) => {
             if (err) {
                 console.log("Error while inserting data to database " + err);
                 ctx.throw(409,'Error while Inserting data');

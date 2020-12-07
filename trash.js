@@ -100,3 +100,85 @@ if (typeof bearerHeader !== 'undefined') {
     ctx.throw(401, 'Forbidden');
 }; 
 }
+
+
+
+    //Checking database for emailId of user...
+    var emailId = ctx.request.body.emailId;
+    var params = {
+        TableName: "Users",
+        ProjectionExpression: '#ur,password',
+        KeyConditionExpression: "#ur = :email",
+        ExpressionAttributeNames: {
+            "#ur": "emailId"
+        },
+        ExpressionAttributeValues: {
+            ":email": emailId
+        }
+    };
+    return new Promise((resolve, reject) => {
+        docClient.query(params, async (err, data) => {
+            if (err) {
+                console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                ctx.status = 401;
+                ctx.body = { "Message": "Query Error" };
+            } else {
+                console.log(data);
+                if (Number(data.Count) < 1 || bcrypt.compareSync(ctx.request.body.password, data.Items[0].password)) {
+                    ctx.status = 409;
+                    ctx.body = { "Message": "User doesn't exist / check email or password" };
+                    console.log("correct22");
+                }
+                else {
+                    logInCredintails=data.Items[0];
+                    //Get token from cookie set by [signUp] route...
+                    ctx.token = ctx.cookies.get("authToken");
+
+                    //check token for expire..
+                    var isExpired = false;
+                    try {
+                        jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
+                    } catch (err) {
+                        if (err.name == "TokenExpiredError") {
+                            isExpired = true;
+                        }
+                    }
+                    console.log(isExpired);
+                    //check for direct login straight from signUp..  
+                    if (ctx.token == undefined || isExpired) {
+                        console.log("correct");
+                        //Signing the token for new login
+                        var promiseLogIn = new Promise((resolve, reject) => {
+                            jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '1h' }, (err, token) => {
+                                if (err) {
+                                    reject(err);
+                                }
+                                else {
+                                    resolve(token);
+                                }
+                            });
+                        });
+                        return promiseLogIn.then((token) => {
+                            ctx.token = token;
+                            console.log("correct");
+                            jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+                                if (err) {
+                                    console.log({ "verify": err });
+                                    ctx.status = 412;
+                                    ctx.body = { "Message : 'Token verification problem' ": err };
+                                }
+                                else {
+                                    ctx.verifiedData = data;
+                                }
+                                next();
+                            });
+                        }).catch((err) => {
+                            ctx.status = 412;
+                            ctx.body = { "Message": { 'Token  signing problem : ': err } };
+                        });
+                    }
+                }
+            }
+            resolve();
+        });
+    });
