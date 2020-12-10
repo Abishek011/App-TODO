@@ -29,6 +29,7 @@ const jwt = require('jsonwebtoken');
 
 //Middleware [ signUp ] to check for already existing user
 async function checkDuplicate(ctx, next) {
+    console.log("called");
     var emailId = ctx.request.body.emailId;
     var params = {
         TableName: "Users",

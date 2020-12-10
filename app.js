@@ -11,7 +11,12 @@ const app = new koa();
 app.use(bodyParser());
 
 //Koa-Router
-const route = new router();
+const route = new router({
+    prefix: '/user'
+});
+
+//Koa-Router
+const routes = new router();
 
 //Pre-defined path prefix for dashboard
 var dashBoard = new router({
@@ -23,6 +28,9 @@ app.use(route.routes()).use(route.allowedMethods());
 
 //Providing [dashBoard] to all methods
 app.use(dashBoard.routes()).use(dashBoard.allowedMethods());
+
+//Providing [routes] to all methods
+app.use(routes.routes()).use(routes.allowedMethods());
 
 //configuring the environmentVariable using [dotenv]
 require('dotenv').config()
@@ -37,25 +45,7 @@ aws.config.update({
     region: "us-west-2",
     endpoint: "http://localhost:8000"
 });
-/* 
-//Configuring dynamoDB from aws
-var dataBase = new aws.DynamoDB();
 
-//Document client for dynamodb
-var docClient = new aws.DynamoDB.DocumentClient();
-
-//password encription using bcryptjs
-const bcryptjs = require('bcryptjs');
-
-//saltrounds for costing
-const saltRounds = 10;
-
-//UUID Url-friendly Unique Id for userid
-const { v4: uuid4 } = require('uuid');
-
-//JWT 
-const jwt = require('jsonwebtoken');
- */
 //Port number
 var port = process.env.PORT || 3000;
 
@@ -64,7 +54,7 @@ var middleWare= require('./routers/middleWares/middleWares')
 
 var routers = require('./routers/routes');
 
-route.post('/signUp', middleWare.checkDuplicate , routers.signUp);
+routes.post('/user', middleWare.checkDuplicate , routers.signUp);
 
 route.post('/createTable',routers.createTable);
 
@@ -77,6 +67,8 @@ dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
 dashBoard.delete('/deleteTask',middleWare.deleteTask,routers.deleteTask);
 
 dashBoard.get('/viewTask',middleWare.verifyView,routers.viewTask);
+
+route.get('/logOut',routers.logOut);
 
 app.listen(port,()=>{
     console.log(`listening to port : ${port}`);

@@ -105,7 +105,7 @@ var signUp = async (ctx) => {
     return promiseSign.then(() => {
         console.log("Added user : " + emailId);
         ctx.status = 307;
-        ctx.redirect('/logIn', 'Redirecting to logIn');
+        ctx.redirect('/user/logIn', 'Redirecting to logIn');
     }).catch((err) => {
         console.log(err);
         ctx.status = 409;
@@ -141,15 +141,15 @@ var logIn = (ctx) => {
     return promiseDashBoard.then((data) => {
         const dashBoard = data;
         if (data.tasks.length == 0) {
-            dashBoard.tasks = "No Tasks Added Yet";
+            dashBoard.tasks = [{
+                "taskName": "default task",
+                "taskAddedTime": new Date(Date.now()).toString(),
+                "taskId": uuid4(),
+                "taskDescription": "No task Added yet, this is the defaut task"
+            }];
         }
         else {
             dashBoard.tasks = data.tasks;
-        }
-        data.routes = {
-            addTask: "/dashBoard/addtask",
-            removeTask: "/dashBoard/removetask",
-            viewTask: "/dashBoard/viewtasks",
         }
         ctx.body = {
             "dashBoard": dashBoard
@@ -276,9 +276,10 @@ var deleteTask=async (ctx)=>{
     });
 };
 
-//Get - view Tasks
+//GET - view Tasks
 var viewTask = (ctx)=>{
     var loggerCredintails = ctx.verifiedData;
+    console.log(loggerCredintails);
     var userDetails = {
         TableName: 'Users',
         ProjectionExpression: 'userId,userName,emailId,tasks',
@@ -301,19 +302,20 @@ var viewTask = (ctx)=>{
         });
     });
     return promiseDashBoard.then((data) => {
-        const dashBoard = data.tasks;
+        var dashBoard;
         if (data.tasks.length == 0) {
-            dashBoard.tasks = "No Tasks Added Yet";
+            dashBoard = [{
+                "taskName": "default task",
+                "taskAddedTime": new Date(Date.now()).toString(),
+                "taskId": uuid4(),
+                "taskDescription": "No task Added yet, this is the defaut task"
+            }];
         }
         else {
+            dashBoard = data.tasks;
             for(var i=0;i<dashBoard.length;i++){
                 dashBoard[i].taskAddedTime=new Date(dashBoard[i].taskAddedTime).toString();
             }
-        }
-        data.routes = {
-            addTask: "/dashBoard/addtask",
-            removeTask: "/dashBoard/removetask",
-            viewTask: "/dashBoard/viewtasks",
         }
         ctx.body = {
             "dashBoard": dashBoard
@@ -324,6 +326,12 @@ var viewTask = (ctx)=>{
     });
 }
 
+//GET logOut
+var logOut = (ctx)=>{
+    ctx.cookies.set("authToken",null);
+    ctx.body={Message:"Logged out"}
+}
+
 //Exporting all routes [createTable , deleteTable , signUp , login]
 module.exports = {
     createTable,
@@ -332,5 +340,6 @@ module.exports = {
     logIn,
     addTask,
     deleteTask,
-    viewTask
+    viewTask,
+    logOut
 }
