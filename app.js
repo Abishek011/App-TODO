@@ -66,7 +66,7 @@ dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
 
 dashBoard.delete('/deleteTask',middleWare.deleteTask,routers.deleteTask);
 
-dashBoard.get('/viewTask',middleWare.verifyView,routers.viewTask);
+dashBoard.get('/viewTasks',middleWare.verifyView,routers.viewTask);
 
 route.get('/logOut',routers.logOut);
 

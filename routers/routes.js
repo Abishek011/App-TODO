@@ -196,7 +196,7 @@ var addTask = (ctx) => {
         });
     });
     return promiseAddTask.then((data)=>{
-        ctx.body={Message:"Task Added successfully",toCheck:"/dashBoard/viewTask"};
+        ctx.body={Message:"Task Added successfully"};
     }).catch((err)=>{
         ctx.status=409;
         ctx.body={Error:"problem durinig updation"};
@@ -268,7 +268,7 @@ var deleteTask=async (ctx)=>{
         });
     });
     return promiseAddTask.then((data)=>{
-        ctx.body={Message:"Task deleted successfully",toCheck:"/dashBoard/viewTask"};
+        ctx.body={Message:"Task deleted successfully"};
     }).catch((err)=>{
         ctx.status=409;
         ctx.body={Error:"problem durinig deletion"};
@@ -302,9 +302,9 @@ var viewTask = (ctx)=>{
         });
     });
     return promiseDashBoard.then((data) => {
-        var dashBoard;
+        var tasks;
         if (data.tasks.length == 0) {
-            dashBoard = [{
+            tasks = [{
                 "taskName": "default task",
                 "taskAddedTime": new Date(Date.now()).toString(),
                 "taskId": uuid4(),
@@ -312,13 +312,13 @@ var viewTask = (ctx)=>{
             }];
         }
         else {
-            dashBoard = data.tasks;
-            for(var i=0;i<dashBoard.length;i++){
-                dashBoard[i].taskAddedTime=new Date(dashBoard[i].taskAddedTime).toString();
+            tasks = data.tasks;
+            for(var i=0;i<tasks.length;i++){
+                tasks[i].taskAddedTime=new Date(tasks[i].taskAddedTime).toString();
             }
         }
         ctx.body = {
-            "dashBoard": dashBoard
+            "tasks": tasks
         }
     }).catch((err) => {
         ctx.status = 409;
