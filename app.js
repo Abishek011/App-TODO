@@ -20,7 +20,7 @@ const routes = new router();
 
 //Pre-defined path prefix for dashboard
 var dashBoard = new router({
-    prefix: '/dashBoard'
+    prefix: '/user/dashBoard'
 });
 
 //Providing [routes] to all methods
