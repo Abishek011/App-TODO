@@ -70,6 +70,10 @@ dashBoard.get('/viewTasks',middleWare.verifyView,routers.viewTask);
 
 route.get('/logOut',routers.logOut);
 
+routes.get('/',ctx=>{
+    ctx.body="server running at 3000";
+});
+
 app.listen(port,()=>{
     console.log(`listening to port : ${port}`);
 })
