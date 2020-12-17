@@ -4,10 +4,10 @@ const aws = require('aws-sdk');
 
 //Configuring the database..
 aws.config.update({
-    accessKeyId: 'rajaram',
-    secretAccessKey: 'rajaram',
-    region: "us-west-2",
-    endpoint: "http://localhost:8000"
+    accessKeyId: env.process.SECRET_ACCESSKEY_ID,
+    secretAccessKey: env.process.SECRET_ACCESSKEY,
+    region: "us-east-1",
+    endpoint: "https://dynamodb.us-east-1.amazonaws.com"
 });
 
 var dataBase = new aws.DynamoDB();
@@ -86,26 +86,26 @@ var signUp = async (ctx) => {
             'tasks': []
         },
     };
-    //console.log({ "params": params });
+    console.log({ "params": 1 });
     var promiseSign = new Promise((resolve, reject) => {
         docClient.put(params, function (err, data) {
             if (err) {
                 console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-                reject();
+                reject(err);
             } else {
                 //signing token for auto login
                 jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '1h' }, (err, token) => {
                     ctx.cookies.set("authToken", token, { httpOnly: false });
                     //ctx.cookies.set("signUpStatusTrue")
-                });
+                }); 
                 resolve();
             }
         });
     });
     return promiseSign.then(() => {
         console.log("Added user : " + emailId);
-        ctx.status = 307;
-        ctx.redirect('/user/logIn', 'Redirecting to logIn');
+        ctx.status = 200;
+        ctx.body={Message:"User Created"};
     }).catch((err) => {
         console.log(err);
         ctx.status = 409;
@@ -113,9 +113,9 @@ var signUp = async (ctx) => {
     });
 };
 
-
 //POST - logIn [DashBoard]
 var logIn = (ctx) => {
+    console.log("login");
     var loggerCredintails = ctx.verifiedData;
     var userDetails = {
         TableName: 'Users',

@@ -1,5 +1,3 @@
-const { LexModelBuildingService } = require("aws-sdk");
-
 //Databse table schema
 var user = {
     TableName: 'Users',

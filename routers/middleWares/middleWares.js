@@ -4,10 +4,10 @@ const aws = require('aws-sdk');
 
 //Configuring the database..
 aws.config.update({
-    accessKeyId: 'rajaram',
-    secretAccessKey: 'rajaram',
-    region: "us-west-2",
-    endpoint: "http://localhost:8000"
+    accessKeyId: env.process.SECRET_ACCESSKEY_ID,
+    secretAccessKey: env.process.SECRET_ACCESSKEY,
+    region: "us-east-1",
+    endpoint: "https://dynamodb.us-east-1.amazonaws.com"
 });
 
 var dataBase = new aws.DynamoDB();
@@ -29,7 +29,7 @@ const jwt = require('jsonwebtoken');
 
 //Middleware [ signUp ] to check for already existing user
 async function checkDuplicate(ctx, next) {
-    console.log("called");
+    //console.log("called");
     var emailId = ctx.request.body.emailId;
     var params = {
         TableName: "Users",
@@ -175,6 +175,8 @@ async function checkDuplicateTask(ctx,next){
     var token=ctx.cookies.get('authToken');
     var emailId;
 
+    console.log(ctx.request);
+
     var promiseToken = new Promise((resolve,reject)=>{
         jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
             if(err){
@@ -249,7 +251,7 @@ async function checkDuplicateTask(ctx,next){
     });}
 }
 
-//
+//Middleware [ deleteTask ] to check for the task existing
 async function deleteTask(ctx,next){
     var token=ctx.cookies.get('authToken');
     var emailId;
@@ -274,7 +276,7 @@ async function deleteTask(ctx,next){
     });
 }
 
-//
+//Middleware [ deleteTask ] for token decoding..
 async function verifyView(ctx,next){
     var token=ctx.cookies.get('authToken');
     var emailId;
@@ -324,6 +326,8 @@ async function verifyView(ctx,next){
         console.log({msg:err});
     });}
 }
+
+//Exporting the middlewares
 module.exports = {
     checkDuplicate,
     verifyLogIn,

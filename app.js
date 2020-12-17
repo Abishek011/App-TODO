@@ -10,6 +10,10 @@ const app = new koa();
 //bodyParse (koa)
 app.use(bodyParser());
 
+//For swagger server validation
+const cors = require('@koa/cors');
+app.use(cors());
+
 //Koa-Router
 const route = new router({
     prefix: '/user'
@@ -40,10 +44,10 @@ const aws = require('aws-sdk');
 
 //Configuring the database..
 aws.config.update({
-    accessKeyId: 'rajaram',
-    secretAccessKey: 'rajaram',
-    region: "us-west-2",
-    endpoint: "http://localhost:8000"
+    accessKeyId: env.process.SECRET_ACCESSKEY_ID,
+    secretAccessKey: env.process.SECRET_ACCESSKEY,
+    region: "us-east-1",
+    endpoint: "https://dynamodb.us-east-1.amazonaws.com"
 });
 
 //Port number
@@ -54,12 +58,14 @@ var middleWare= require('./routers/middleWares/middleWares')
 
 var routers = require('./routers/routes');
 
-routes.post('/user', middleWare.checkDuplicate , routers.signUp);
-
 route.post('/createTable',routers.createTable);
 
 route.delete('/deleteTable',routers.deleteTable);
 
+//user route for signUp operation 
+routes.post('/user', middleWare.checkDuplicate , routers.signUp);
+
+//login route for user login
 route.post('/logIn',middleWare.verifyLogIn,routers.logIn);
 
 dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
