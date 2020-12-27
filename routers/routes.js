@@ -94,7 +94,7 @@ var signUp = async (ctx) => {
                 reject(err);
             } else {
                 //signing token for auto login
-                jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '1h' }, (err, token) => {
+                jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
                     ctx.cookies.set("authToken", token, { httpOnly: false });
                     //ctx.cookies.set("signUpStatusTrue")
                 }); 
