@@ -107,7 +107,7 @@ async function verifyLogIn(ctx, next) {
                         var logInCredintails=data.Items[0];
                         console.log(":8");
                     var promiseLogIn = new Promise((resolve, reject) => {
-                        jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d',httpOnly:false }, (err, token) => {
+                        jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
                             if (err) {
                                 reject(err);
                             }
