@@ -280,7 +280,7 @@ async function deleteTask(ctx,next){
 async function verifyView(ctx,next){
     var token=ctx.cookies.get('authToken');
     var emailId;
-
+    console.log({helo:token});
     var promiseToken = new Promise((resolve,reject)=>{
         jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
             if(err){
