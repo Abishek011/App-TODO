@@ -15,6 +15,10 @@ var dataBase = new aws.DynamoDB();
 //Document client for dynamodb
 var docClient = new aws.DynamoDB.DocumentClient();
 
+//CORS 
+const cors = require('@koa/cors');
+app.use(cors());
+
 //password encription using bcryptjs
 const bcrypt = require('bcryptjs');
 
