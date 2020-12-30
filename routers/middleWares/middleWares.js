@@ -281,6 +281,7 @@ async function deleteTask(ctx, next) {
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx, next) {
 
+    var token;
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
@@ -297,11 +298,11 @@ async function verifyView(ctx, next) {
     };
     console.log({ "params": 1 });
     var promiseSign = new Promise((resolve, reject) => {
-        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
+        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, tokn) => {
             if (err) {
                 reject(err);
             }
-            ctx.cookies.set("authToken", token, { httpOnly: false });
+            token=tokn;
             //ctx.cookies.set("signUpStatusTrue")
             resolve();
         });
@@ -314,7 +315,6 @@ async function verifyView(ctx, next) {
         ctx.body = { "Message ": "Error on authentication" };
     });
 
-    var token = ctx.cookies.get('authToken');
     var emailId;
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
