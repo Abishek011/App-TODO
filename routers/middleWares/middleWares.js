@@ -48,7 +48,7 @@ async function checkDuplicate(ctx, next) {
             if (err) {
                 console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
                 ctx.status = 401;
-                ctx.body = { "Message : Query Error":err };
+                ctx.body = { "Message : Query Error": err };
             } else {
                 if (Number(data.Count) >= 1) {
                     ctx.status = 409;
@@ -73,8 +73,8 @@ async function verifyLogIn(ctx, next) {
         if (err.name == "TokenExpiredError") {
             isExpired = true;
         }
-    }console.log(":1"+isExpired);
-    console.log({isExpired:ctx.token});
+    } console.log(":1" + isExpired);
+    console.log({ isExpired: ctx.token });
     //check for direct login straight from signUp..  
     if (ctx.token == undefined || isExpired) {
         console.log(":2");
@@ -99,56 +99,56 @@ async function verifyLogIn(ctx, next) {
                     ctx.body = { "Message": "Query Error" };
                     reject(err);
                 } else {
-                    console.log({":3":JSON.stringify(data)});
-                    if((Number(data.Count) < 1 ||  !bcrypt.compareSync(ctx.request.body.password, data.Items[0].password))) {
+                    console.log({ ":3": JSON.stringify(data) });
+                    if ((Number(data.Count) < 1 || !bcrypt.compareSync(ctx.request.body.password, data.Items[0].password))) {
                         ctx.status = 409;
                         ctx.body = { "Message": "User doesn't exist / check email or password" };
                         resolve();
-                    }else{
-                        var logInCredintails=data.Items[0];
+                    } else {
+                        var logInCredintails = data.Items[0];
                         console.log(":8");
-                    var promiseLogIn = new Promise((resolve, reject) => {
-                        jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                console.log(":4");
-                                resolve(token);
-                            }
+                        var promiseLogIn = new Promise((resolve, reject) => {
+                            jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
+                                if (err) {
+                                    reject(err);
+                                }
+                                else {
+                                    console.log(":4");
+                                    resolve(token);
+                                }
+                            });
                         });
-                    });
-                    return promiseLogIn.then((token)=>{
-                        ctx.cookies.set("authToken",token,ctx.verifiedData);
-                        console.log(":5");
-                        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
-                            if (err) {
-                                console.log({ "verify": err });
-                                ctx.status = 412;
-                                ctx.body = { "Message : 'Token verification problem' ": err };
-                            }
-                            else {
-                                console.log(":7 : ");
-                                ctx.verifiedData = data;
-                                resolve();
-                            }
+                        return promiseLogIn.then((token) => {
+                            ctx.cookies.set("authToken", token, ctx.verifiedData);
+                            console.log(":5");
+                            jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+                                if (err) {
+                                    console.log({ "verify": err });
+                                    ctx.status = 412;
+                                    ctx.body = { "Message : 'Token verification problem' ": err };
+                                }
+                                else {
+                                    console.log(":7 : ");
+                                    ctx.verifiedData = data;
+                                    resolve();
+                                }
+                            });
+                        }).catch((err) => {
+                            ctx.status = 412;
+                            ctx.body = { "Message": { 'Token  signing problem : ': err } };
                         });
-                    }).catch((err) => {
-                        ctx.status = 412;
-                        ctx.body = { "Message": { 'Token  signing problem : ': err } };
-                    });
                     }
                 }
             });
         });
-        return db.then(async ()=>{
+        return db.then(async () => {
             console.log("dbs");
             await next();
-        }).catch((err)=>{
+        }).catch((err) => {
             console.log(err);
-        }); 
+        });
     }
-    return promiseLogIn.then((token)=>{
+    return promiseLogIn.then((token) => {
         ctx.token = token;
         console.log(":5");
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
@@ -171,114 +171,115 @@ async function verifyLogIn(ctx, next) {
 }
 
 //Middleware [ addTask ] to check for pre-existing task of same name
-async function checkDuplicateTask(ctx,next){
+async function checkDuplicateTask(ctx, next) {
     //get token from the cookie saved from [logIn] or [signUp]
-    var token=ctx.cookies.get('authToken');
+    var token = ctx.cookies.get('authToken');
     var emailId;
 
     console.log(ctx.request);
 
-    var promiseToken = new Promise((resolve,reject)=>{
-        jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
-            if(err){
+    var promiseToken = new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+            if (err) {
                 reject(err);
             }
-            else{
+            else {
                 resolve(data);
             }
         });
     });
-    await promiseToken.then((data)=>{
-            ctx.verifiedData=data;
-            emailId=data.emailId;
-    }).catch((err)=>{
-        ctx.status=401;
-        ctx.body={Message:"Token expired"};
+    await promiseToken.then((data) => {
+        ctx.verifiedData = data;
+        emailId = data.emailId;
+    }).catch((err) => {
+        ctx.status = 401;
+        ctx.body = { Message: "Token expired" };
     });
-    if(ctx.status!=401){
-    var taskName=""+ctx.request.body.taskName;
-    var taskDescription=""+ctx.request.body.taskDescription;
-    var taskList ={
-        TableName: 'Users',
-        ProjectionExpression: 'tasks',
-        KeyConditionExpression: '#ur = :email',
-        ExpressionAttributeNames:{
-            '#ur': 'emailId'
-        },
-        ExpressionAttributeValues:{
-            ':email':emailId
+    if (ctx.status != 401) {
+        var taskName = "" + ctx.request.body.taskName;
+        var taskDescription = "" + ctx.request.body.taskDescription;
+        var taskList = {
+            TableName: 'Users',
+            ProjectionExpression: 'tasks',
+            KeyConditionExpression: '#ur = :email',
+            ExpressionAttributeNames: {
+                '#ur': 'emailId'
+            },
+            ExpressionAttributeValues: {
+                ':email': emailId
+            }
         }
-    }
-    var promiseTask = new Promise((resolve,reject)=>{
-        docClient.query(taskList,(err,data)=>{
-            if(err){
-                reject(err);
-            }
-            else{
-                resolve(data);
-            }
+        var promiseTask = new Promise((resolve, reject) => {
+            docClient.query(taskList, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(data);
+                }
+            });
         });
-    });
-    return promiseTask.then(async (data)=>{
-        ctx.taskData={
-            taskName:taskName,
-            taskDescription:taskDescription,
-        }
-        if((Object.keys(data.Items[0]).length === 0) && data.Items.length==1){
-            next();
-        }
-        else{
-            var taskFlag=true;
-            //console.log({noo:data.Items[0].tasks});
-            for(var i=0;i<data.Items[0].tasks.length;i++){
-                //console.log(data.Items[0].tasks[i],JSON.stringify(data.Items[0].tasks[i].taskName)==JSON.stringify(taskName));
-                if(new String(data.Items[0].tasks[i].taskName).valueOf()==new String (taskName).valueOf()){
-                    console.log(data.Items[0].tasks[i]);
-                    taskFlag=false;
-                  break;
+        return promiseTask.then(async (data) => {
+            ctx.taskData = {
+                taskName: taskName,
+                taskDescription: taskDescription,
+            }
+            if ((Object.keys(data.Items[0]).length === 0) && data.Items.length == 1) {
+                next();
+            }
+            else {
+                var taskFlag = true;
+                //console.log({noo:data.Items[0].tasks});
+                for (var i = 0; i < data.Items[0].tasks.length; i++) {
+                    //console.log(data.Items[0].tasks[i],JSON.stringify(data.Items[0].tasks[i].taskName)==JSON.stringify(taskName));
+                    if (new String(data.Items[0].tasks[i].taskName).valueOf() == new String(taskName).valueOf()) {
+                        console.log(data.Items[0].tasks[i]);
+                        taskFlag = false;
+                        break;
+                    }
+                }
+                // console.log({mmk:taskFlag});
+                if (taskFlag) {
+                    await next();
+                }
+                else {
+                    ctx.status = 409;
+                    ctx.body = { "Message ": 'Task already exist' };
                 }
             }
-           // console.log({mmk:taskFlag});
-            if(taskFlag){
-                await next();
-            }
-            else{
-                ctx.status=409;
-                ctx.body={"Message " : 'Task already exist'};
-            }
-        }
-    }).catch((err)=>{
-        console.log({masg:err});
-    });}
+        }).catch((err) => {
+            console.log({ masg: err });
+        });
+    }
 }
 
 //Middleware [ deleteTask ] to check for the task existing
-async function deleteTask(ctx,next){
-    var token=ctx.cookies.get('authToken');
+async function deleteTask(ctx, next) {
+    var token = ctx.cookies.get('authToken');
     var emailId;
 
-    var promiseToken = new Promise((resolve,reject)=>{
-        jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
-            if(err){
+    var promiseToken = new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+            if (err) {
                 reject(err);
             }
-            else{
+            else {
                 resolve(data);
             }
         });
     });
-    await promiseToken.then(async(data)=>{
-            ctx.verifiedData=data;
-            emailId=data.emailId;
-            await next();
-    }).catch((err)=>{
-        ctx.status=401;
-        ctx.body={Message:"Token expired"};
+    await promiseToken.then(async (data) => {
+        ctx.verifiedData = data;
+        emailId = data.emailId;
+        await next();
+    }).catch((err) => {
+        ctx.status = 401;
+        ctx.body = { Message: "Token expired" };
     });
 }
 
 //Middleware [ viewTask ] for token decoding..
-async function verifyView(ctx,next){
+async function verifyView(ctx, next) {
 
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
@@ -296,18 +297,13 @@ async function verifyView(ctx,next){
     };
     console.log({ "params": 1 });
     var promiseSign = new Promise((resolve, reject) => {
-        docClient.put(params, function (err, data) {
+        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
             if (err) {
-                console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
                 reject(err);
-            } else {
-                //signing token for auto login
-                jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
-                    ctx.cookies.set("authToken", token, { httpOnly: false });
-                    //ctx.cookies.set("signUpStatusTrue")
-                }); 
-                resolve();
             }
+            ctx.cookies.set("authToken", token, { httpOnly: false });
+            //ctx.cookies.set("signUpStatusTrue")
+            resolve();
         });
     });
     await promiseSign.then(() => {
@@ -318,52 +314,53 @@ async function verifyView(ctx,next){
         ctx.body = { "Message ": "Error on authentication" };
     });
 
-    var token=ctx.cookies.get('authToken');
+    var token = ctx.cookies.get('authToken');
     var emailId;
-    var promiseToken = new Promise((resolve,reject)=>{
-        jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
-            if(err){
+    var promiseToken = new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+            if (err) {
                 reject(err);
             }
-            else{
+            else {
                 resolve(data);
             }
         });
     });
-    await promiseToken.then((data)=>{
-            ctx.verifiedData=data;
-            emailId=data.emailId;
-    }).catch((err)=>{
-        ctx.status=401;
-        ctx.body={Message:err};
+    await promiseToken.then((data) => {
+        ctx.verifiedData = data;
+        emailId = data.emailId;
+    }).catch((err) => {
+        ctx.status = 401;
+        ctx.body = { Message: err };
     });
-    if(ctx.status!=401){
-    var taskList ={
-        TableName: 'Users',
-        ProjectionExpression: 'tasks',
-        KeyConditionExpression: '#ur = :email',
-        ExpressionAttributeNames:{
-            '#ur': 'emailId'
-        },
-        ExpressionAttributeValues:{
-            ':email':emailId
+    if (ctx.status != 401) {
+        var taskList = {
+            TableName: 'Users',
+            ProjectionExpression: 'tasks',
+            KeyConditionExpression: '#ur = :email',
+            ExpressionAttributeNames: {
+                '#ur': 'emailId'
+            },
+            ExpressionAttributeValues: {
+                ':email': emailId
+            }
         }
-    }
-    var promiseTask = new Promise((resolve,reject)=>{
-        docClient.query(taskList,(err,data)=>{
-            if(err){
-                reject(err);
-            }
-            else{
-                resolve(data);
-            }
+        var promiseTask = new Promise((resolve, reject) => {
+            docClient.query(taskList, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(data);
+                }
+            });
         });
-    });
-    return promiseTask.then(async (data)=>{
-        await next();
-    }).catch((err)=>{
-        console.log({msg:err});
-    });}
+        return promiseTask.then(async (data) => {
+            await next();
+        }).catch((err) => {
+            console.log({ msg: err });
+        });
+    }
 }
 
 //Exporting the middlewares
