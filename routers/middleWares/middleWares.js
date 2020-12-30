@@ -279,9 +279,47 @@ async function deleteTask(ctx,next){
 
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx,next){
+
+    var emailId = "" + ctx.request.body.emailId;
+    var password = ctx.request.body.password;
+    var userName = ctx.request.body.userName;
+    const hashedPassword = bcrypt.hashSync(password, saltRounds);
+    var params = {
+        TableName: "Users",
+        Item: {
+            "userId": uuid4(),
+            "emailId": emailId,
+            "password": hashedPassword,
+            "userName": userName,
+            'tasks': []
+        },
+    };
+    console.log({ "params": 1 });
+    var promiseSign = new Promise((resolve, reject) => {
+        docClient.put(params, function (err, data) {
+            if (err) {
+                console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                reject(err);
+            } else {
+                //signing token for auto login
+                jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
+                    ctx.cookies.set("authToken", token, { httpOnly: false });
+                    //ctx.cookies.set("signUpStatusTrue")
+                }); 
+                resolve();
+            }
+        });
+    });
+    await promiseSign.then(() => {
+        console.log("Added user : " + emailId);
+    }).catch((err) => {
+        console.log(err);
+        ctx.status = 409;
+        ctx.body = { "Message ": "Error on authentication" };
+    });
+
     var token=ctx.cookies.get('authToken');
     var emailId;
-    console.log({helo:token});
     var promiseToken = new Promise((resolve,reject)=>{
         jwt.verify(token,process.env.SIGN_TOKEN_KEY,(err,data)=>{
             if(err){
