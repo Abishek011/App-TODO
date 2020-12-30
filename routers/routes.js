@@ -15,8 +15,6 @@ var dataBase = new aws.DynamoDB();
 //Document client for dynamodb
 var docClient = new aws.DynamoDB.DocumentClient();
 
-
-
 //password encription using bcryptjs
 const bcrypt = require('bcryptjs');
 

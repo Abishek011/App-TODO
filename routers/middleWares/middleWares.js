@@ -16,7 +16,6 @@ var dataBase = new aws.DynamoDB();
 var docClient = new aws.DynamoDB.DocumentClient();
 
 
-
 //password encription using bcrypt
 const bcrypt = require('bcryptjs');
 
@@ -278,7 +277,7 @@ async function deleteTask(ctx,next){
     });
 }
 
-//Middleware [ deleteTask ] for token decoding..
+//Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx,next){
     var token=ctx.cookies.get('authToken');
     var emailId;
