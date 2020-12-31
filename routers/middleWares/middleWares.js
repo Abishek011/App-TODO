@@ -174,6 +174,7 @@ async function verifyLogIn(ctx, next) {
 async function checkDuplicateTask(ctx, next) {
 
     var token;
+    console.log("body",ctx.request.body);
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
