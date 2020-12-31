@@ -177,10 +177,7 @@ var addTask = (ctx) => {
             "userId": userId,
             "emailId": emailId
         },
-        UpdateExpression: "set #Task=list_append(#Task, :newTask)",
-        ExpressionAttributeNames: {
-            "#Task": 'tasks'
-        },
+        UpdateExpression: "set tasks=list_append(tasks, :newTask)",
         ExpressionAttributeValues: {
             ":newTask": [taskDetails],
         },
