@@ -178,12 +178,13 @@ var addTask = (ctx) => {
             "emailId": emailId
         },
         UpdateExpression: "set tasks=list_append(tasks, :newTask)",
-        
+
         ExpressionAttributeValues: {
             ":newTask": [taskDetails],
         },
         ReturnValues: "UPDATED_NEW"
     };
+    console.log("params",params);
     var promiseAddTask = new Promise((resolve, reject) => {
         docClient.update(params, (err, data) => {
             if (err) {
