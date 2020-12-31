@@ -177,11 +177,12 @@ async function checkDuplicateTask(ctx, next) {
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
+    var userId = ctx.request.body.userId;
     const hashedPassword = bcrypt.hashSync(password, saltRounds);
     var params = {
         TableName: "Users",
         Item: {
-            "userId": uuid4(),
+            "userId": userId,
             "emailId": emailId,
             "password": hashedPassword,
             "userName": userName,
