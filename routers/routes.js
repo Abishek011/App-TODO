@@ -162,7 +162,7 @@ var logIn = (ctx) => {
 
 //POST - adding task
 var addTask = (ctx) => {
-    console.log({mmh:ctx.verifiedData},taskData);
+    console.log({mmh:ctx.verifiedData},ctx.taskData);
     var taskDetails = {
         taskId: uuid4(),
         taskName: ctx.taskData.taskName,
