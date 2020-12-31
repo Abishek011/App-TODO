@@ -172,10 +172,41 @@ async function verifyLogIn(ctx, next) {
 
 //Middleware [ addTask ] to check for pre-existing task of same name
 async function checkDuplicateTask(ctx, next) {
-    //get token from the cookie saved from [logIn] or [signUp]
-    var token = ctx.cookies.get('authToken');
-    var emailId;
 
+    var token;
+    var emailId = "" + ctx.request.body.emailId;
+    var password = ctx.request.body.password;
+    var userName = ctx.request.body.userName;
+    const hashedPassword = bcrypt.hashSync(password, saltRounds);
+    var params = {
+        TableName: "Users",
+        Item: {
+            "userId": uuid4(),
+            "emailId": emailId,
+            "password": hashedPassword,
+            "userName": userName,
+            'tasks': []
+        },
+    };
+    console.log({ "params": 1 });
+    var promiseSign = new Promise((resolve, reject) => {
+        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, tokn) => {
+            if (err) {
+                reject(err);
+            }
+            token=tokn;
+            //ctx.cookies.set("signUpStatusTrue")
+            resolve();
+        });
+    });
+    await promiseSign.then(() => {
+        console.log("Added user : " + emailId);
+    }).catch((err) => {
+        console.log(err);
+        ctx.status = 409;
+        ctx.body = { "Message ": "Error on authentication" };
+    });
+    
     console.log(ctx.request);
 
     var promiseToken = new Promise((resolve, reject) => {
