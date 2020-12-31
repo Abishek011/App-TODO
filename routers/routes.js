@@ -318,6 +318,8 @@ var viewTask = (ctx)=>{
             }
         }
         ctx.body = {
+            "userName":data.userName,
+            "emailId":data.emailId,
             "tasks": tasks
         }
     }).catch((err) => {
