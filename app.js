@@ -70,7 +70,7 @@ route.post('/logIn',middleWare.verifyLogIn,routers.logIn);
 
 dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
 
-dashBoard.post('/deleteTask',middleWare.deleteTask,routers.deleteTask);
+dashBoard.delete('/deleteTask',middleWare.deleteTask,routers.deleteTask);
 
 dashBoard.post('/viewTasks',middleWare.verifyView,routers.viewTask);
 
