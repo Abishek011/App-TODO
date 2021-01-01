@@ -116,7 +116,7 @@ var signUp = async (ctx) => {
 //POST - logIn [DashBoard]
 var logIn = (ctx) => {
     console.log("login");
-    var loggerCredintails = ctx.verifiedData;
+    var emailId=ctx.body.emailId;
     var userDetails = {
         TableName: 'Users',
         ProjectionExpression: 'userId,userName,emailId,tasks',
@@ -125,7 +125,7 @@ var logIn = (ctx) => {
             "#email": 'emailId',
         },
         ExpressionAttributeValues: {
-            ":email": loggerCredintails.emailId
+            ":email": emailId
         }
     }
     var promiseDashBoard = new Promise((resolve, reject) => {
