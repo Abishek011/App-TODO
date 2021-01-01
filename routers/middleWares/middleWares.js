@@ -66,6 +66,7 @@ async function checkDuplicate(ctx, next) {
 //Middleware [ logIn ] to verify Authorization token & login credintials varification
 async function verifyLogIn(ctx, next) {
 
+    console.log(ctx.body);
     ctx.token=ctx.body.userCookie;
     var isExpired = false;
     try {
