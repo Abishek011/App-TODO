@@ -119,7 +119,7 @@ async function verifyLogIn(ctx, next) {
                             });
                         });
                         return promiseLogIn.then((token) => {
-                            ctx.cookies.set("authToken", token, ctx.verifiedData);
+                            ctx.cookies.set("authToken", {httpOnly:false});
                             console.log(":5");
                             jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
                                 if (err) {
