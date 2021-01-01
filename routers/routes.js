@@ -116,7 +116,7 @@ var signUp = async (ctx) => {
 //POST - logIn [DashBoard]
 var logIn = (ctx) => {
     console.log("login");
-    var emailId=ctx.body.emailId;
+    var emailId=ctx.request.body.emailId;
     var userDetails = {
         TableName: 'Users',
         ProjectionExpression: 'userId,userName,emailId,tasks',
