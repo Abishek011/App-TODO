@@ -66,8 +66,8 @@ async function checkDuplicate(ctx, next) {
 //Middleware [ logIn ] to verify Authorization token & login credintials varification
 async function verifyLogIn(ctx, next) {
 
-    console.log(ctx.body);
-    ctx.token=ctx.body.userCookie;
+    console.log(ctx.request.body);
+    ctx.token=ctx.body.request.userCookie;
     var isExpired = false;
     try {
         jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
