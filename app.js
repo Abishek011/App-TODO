@@ -12,7 +12,10 @@ app.use(bodyParser());
 
 //For swagger server validation
 const cors = require('@koa/cors');
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5000',
+    optionsSuccessStatus: 200 // For legacy browser support
+}));
 
 //Koa-Router
 const route = new router({
