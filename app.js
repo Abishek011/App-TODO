@@ -11,9 +11,9 @@ const app = new koa();
 app.use(bodyParser());
 
 //For swagger server validation
-const cors = require('@koa/cors');
+const cors = require('cors');
 app.use(cors({
-    origin: 'https://app--todo.herokuapp.com',
+    origin: 'http://localhost:4200',
     optionsSuccessStatus: 200 // For legacy browser support
 }));
 
