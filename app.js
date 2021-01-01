@@ -12,10 +12,11 @@ app.use(bodyParser());
 
 //For swagger server validation
 const cors = require('cors');
-app.use(cors({
-    origin: 'http://localhost:4200',
-    optionsSuccessStatus: 200 // For legacy browser support
-}));
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 //Koa-Router
 const route = new router({
@@ -60,6 +61,7 @@ var port = process.env.PORT || 3000;
 var middleWare= require('./routers/middleWares/middleWares')
 
 var routers = require('./routers/routes');
+const { header } = require("koa/lib/response");
 
 route.post('/createTable',routers.createTable);
 
