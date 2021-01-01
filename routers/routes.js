@@ -93,19 +93,13 @@ var signUp = async (ctx) => {
                 console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
                 reject(err);
             } else {
-                //signing token for auto login
-                jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
-                    ctx.cookies.set("authToken", token, { httpOnly: false });
-                    //ctx.cookies.set("signUpStatusTrue")
-                }); 
                 resolve();
             }
         });
     });
     return promiseSign.then(() => {
-        console.log("Added user : " + emailId);
         ctx.status = 200;
-        ctx.body={Message:"User Created"};
+        ctx.body = { Message: "User Created" };
     }).catch((err) => {
         console.log(err);
         ctx.status = 409;
@@ -116,56 +110,16 @@ var signUp = async (ctx) => {
 //POST - logIn [DashBoard]
 var logIn = (ctx) => {
     console.log("login");
-    var emailId=ctx.request.body.emailId;
-    var userDetails = {
-        TableName: 'Users',
-        ProjectionExpression: 'userId,userName,emailId,tasks',
-        KeyConditionExpression: "#email = :email",
-        ExpressionAttributeNames: {
-            "#email": 'emailId',
-        },
-        ExpressionAttributeValues: {
-            ":email": emailId
-        }
+    ctx.status = 200;
+    ctx.body = {
+        'cookie': ctx.token,
+        'message': "logIn Successful"
     }
-    var promiseDashBoard = new Promise((resolve, reject) => {
-        docClient.query(userDetails, async (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                console.log(data);
-                resolve(data.Items[0]);
-            }
-        });
-    });
-    return promiseDashBoard.then((data) => {
-        const dashBoard = data;
-        if (data.tasks.length == 0) {
-            dashBoard.tasks = [{
-                "taskName": "default task",
-                "taskAddedTime": new Date(Date.now()).toString(),
-                "taskId": uuid4(),
-                "taskDescription": "No task Added yet, this is the defaut task"
-            }];
-        }
-        else {
-            dashBoard.tasks = data.tasks;
-        }
-        console.log(ctx.token);
-        ctx.status=200;
-        ctx.body = {
-            'cookie':ctx.token,
-            'message':"logIn Successful"
-        }
-    }).catch((err) => {
-        ctx.status = 409;
-        ctx.body = { "Error while accessing dashBoard data": err };
-    });
 };
 
 //POST - adding task
 var addTask = (ctx) => {
-    console.log({mmh:ctx.verifiedData},ctx.taskData);
+    console.log({ mmh: ctx.verifiedData }, ctx.taskData);
     var taskDetails = {
         taskId: uuid4(),
         taskName: ctx.taskData.taskName,
@@ -187,29 +141,29 @@ var addTask = (ctx) => {
         },
         ReturnValues: "UPDATED_NEW"
     };
-    console.log("params",params);
+    console.log("params", params);
     var promiseAddTask = new Promise((resolve, reject) => {
         docClient.update(params, (err, data) => {
             if (err) {
                 reject(err);
-            }else{
+            } else {
                 resolve(data);
             }
         });
     });
-    return promiseAddTask.then((data)=>{
-        ctx.body={Message:"Task Added successfully"};
-    }).catch((err)=>{
-        ctx.status=409;
-        ctx.body={Error:"problem durinig updation"};
+    return promiseAddTask.then((data) => {
+        ctx.body = { Message: "Task Added successfully" };
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { Error: "problem durinig updation" };
         console.log(err);
-    }); 
+    });
 };
 
 //DELETE - deleting task
-var deleteTask=async (ctx)=>{
+var deleteTask = async (ctx) => {
     var deleteTaskName = ctx.request.body.taskName;
-    var emailId= ctx.verifiedData.emailId;
+    var emailId = ctx.verifiedData.emailId;
     var tasks;
     var userDetails = {
         TableName: 'Users',
@@ -232,15 +186,15 @@ var deleteTask=async (ctx)=>{
             }
         });
     });
-    await promiseDashBoard.then(async(data) => {
-        tasks=data;
+    await promiseDashBoard.then(async (data) => {
+        tasks = data;
     }).catch((err) => {
         ctx.status = 409;
         ctx.body = { "Error while accessing dashBoard data": err };
     });
-    for(var i=0;i<tasks.length;i++){
-        if(new String(tasks[i].taskName).valueOf()==new String(deleteTaskName).valueOf()){
-            tasks.splice(i,1);
+    for (var i = 0; i < tasks.length; i++) {
+        if (new String(tasks[i].taskName).valueOf() == new String(deleteTaskName).valueOf()) {
+            tasks.splice(i, 1);
             break;
         }
     }
@@ -264,22 +218,22 @@ var deleteTask=async (ctx)=>{
         docClient.update(params, (err, data) => {
             if (err) {
                 reject(err);
-            }else{
+            } else {
                 resolve(data);
             }
         });
     });
-    return promiseAddTask.then((data)=>{
-        ctx.body={Message:"Task deleted successfully"};
-    }).catch((err)=>{
-        ctx.status=409;
-        ctx.body={Error:"problem durinig deletion"};
+    return promiseAddTask.then((data) => {
+        ctx.body = { Message: "Task deleted successfully" };
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { Error: "problem durinig deletion" };
         console.log(err);
     });
 };
 
 //GET - view Tasks
-var viewTask = (ctx)=>{
+var viewTask = (ctx) => {
     var loggerCredintails = ctx.verifiedData;
     console.log(loggerCredintails);
     var userDetails = {
@@ -315,13 +269,13 @@ var viewTask = (ctx)=>{
         }
         else {
             tasks = data.tasks;
-            for(var i=0;i<tasks.length;i++){
-                tasks[i].taskAddedTime=new Date(tasks[i].taskAddedTime).toString();
+            for (var i = 0; i < tasks.length; i++) {
+                tasks[i].taskAddedTime = new Date(tasks[i].taskAddedTime).toString();
             }
         }
         ctx.body = {
-            "userName":data.userName,
-            "emailId":data.emailId,
+            "userName": data.userName,
+            "emailId": data.emailId,
             "tasks": tasks
         }
     }).catch((err) => {
@@ -331,9 +285,9 @@ var viewTask = (ctx)=>{
 }
 
 //GET logOut
-var logOut = (ctx)=>{
-    ctx.cookies.set("authToken",null);
-    ctx.body={Message:"Logged out"}
+var logOut = (ctx) => {
+    ctx.cookies.set("authToken", null);
+    ctx.body = { Message: "Logged out" }
 }
 
 //Exporting all routes [createTable , deleteTable , signUp , login]

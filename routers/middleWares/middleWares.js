@@ -57,7 +57,7 @@ async function checkDuplicate(ctx, next) {
             ":email": emailId
         }
     };
-    return new Promise((resolve, reject) => {
+    var signPromise = new Promise((resolve, reject) => {
         docClient.query(params, async (err, data) => {
             if (err) {
                 console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
@@ -65,15 +65,19 @@ async function checkDuplicate(ctx, next) {
                 ctx.body = { "Message : Query Error": err };
             } else {
                 if (Number(data.Count) >= 1) {
-                    ctx.status = 409;
-                    ctx.body = { "Message": 'User already exist' };
+                    reject();
                 }
                 else {
-                    await next();
+                    resolve();
                 }
             }
-            resolve();
         });
+    });
+    await signPromise.then(()=>{
+        next();
+    }).catch(()=>{
+        ctx.status = 409;
+        ctx.body = { "Message": 'User already exist' };
     });
 }
 
@@ -139,26 +143,6 @@ async function verifyLogIn(ctx, next) {
     }).catch((err) => {
         console.log(err);
     });
-    /* return promiseLogIn.then((token) => {
-        ctx.token = token;
-        console.log(":5");
-        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
-            if (err) {
-                console.log({ "verify": err });
-                ctx.status = 412;
-                ctx.body = { "Message : 'Token verification problem' ": err };
-            }
-            else {
-                console.log(":7");
-                ctx.verifiedData = data;
-                next();
-                resolve();
-            }
-        });
-    }).catch((err) => {
-        ctx.status = 412;
-        ctx.body = { "Message": { 'Token  signing problem : ': err } };
-    }); */
 }
 
 //Middleware [ addTask ] to check for pre-existing task of same name
