@@ -97,7 +97,7 @@ var signUp = async (ctx) => {
             }
         });
     });
-    await promiseSign.then(() => {
+    return promiseSign.then(() => {
         ctx.status = 200;
         ctx.body = { message: "User Created" };
     }).catch((err) => {

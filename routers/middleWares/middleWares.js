@@ -73,7 +73,7 @@ async function checkDuplicate(ctx, next) {
             }
         });
     });
-    await signPromise.then(()=>{
+    return signPromise.then(()=>{
         next();
     }).catch(()=>{
         ctx.status = 409;
