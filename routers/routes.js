@@ -72,7 +72,7 @@ var deleteTable = (ctx) => {
 
 //POST signUp
 var signUp = async (ctx) => {
-    var emailId = "" + ctx.request.body.emailId;
+    var emailId = ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
     const hashedPassword = bcrypt.hashSync(password, saltRounds);
@@ -152,9 +152,10 @@ var logIn = (ctx) => {
             dashBoard.tasks = data.tasks;
         }
         console.log(ctx.token);
+        ctx.status=200;
         ctx.body = {
             'cookie':ctx.token,
-            "dashBoard": dashBoard
+            'message':"logIn Successful"
         }
     }).catch((err) => {
         ctx.status = 409;
