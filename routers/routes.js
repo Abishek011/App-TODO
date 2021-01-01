@@ -153,7 +153,7 @@ var logIn = (ctx) => {
         }
         console.log(ctx.token("authToken"));
         ctx.body = {
-            'cookie':ctx.cookies.get("authToken"),
+            'cookie':ctx.token("authToken"),
             "dashBoard": dashBoard
         }
     }).catch((err) => {
