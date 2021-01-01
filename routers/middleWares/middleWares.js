@@ -322,7 +322,7 @@ async function deleteTask(ctx, next) {
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx, next) {
 
-    var token = ctx.request.body.userCookie;
+    var token = ctx.request.body.userAuthCookie;
     /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
