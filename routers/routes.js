@@ -99,7 +99,7 @@ var signUp = async (ctx) => {
     });
     return promiseSign.then(() => {
         ctx.status = 200;
-        ctx.body = { Message: "User Created" };
+        ctx.body = { message: "User Created" };
     }).catch((err) => {
         console.log(err);
         ctx.status = 409;
