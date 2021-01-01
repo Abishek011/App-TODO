@@ -175,7 +175,7 @@ async function verifyLogIn(ctx, next) {
 //Middleware [ addTask ] to check for pre-existing task of same name
 async function checkDuplicateTask(ctx, next) {
 
-    var token=ctx.body.userCookie;
+    var token=ctx.request.body.userCookie;
     /* console.log("body",ctx.request.body);
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
@@ -291,7 +291,7 @@ async function checkDuplicateTask(ctx, next) {
 //Middleware [ deleteTask ] to check for the task existing
 async function deleteTask(ctx, next) {
 
-    var token=ctx.body.userCookie;
+    var token=ctx.request.body.userCookie;
     console.log("body",ctx.request.body);
     /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
@@ -349,7 +349,7 @@ async function deleteTask(ctx, next) {
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx, next) {
 
-    var token=ctx.body.userCookie;
+    var token=ctx.request.body.userCookie;
     /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
