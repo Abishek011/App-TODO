@@ -29,7 +29,7 @@ const { v4: uuid4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
 //Tokenexpiration check
-function isTokenExpired(token){
+function isTokenExpired(token) {
     try {
         jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
     } catch (err) {
@@ -81,90 +81,65 @@ async function checkDuplicate(ctx, next) {
 async function verifyLogIn(ctx, next) {
 
     console.log(ctx.request.body);
-    ctx.token=ctx.request.body.userCookie;
-    var isExpired = false;
-    try {
-        jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
-    } catch (err) {
-        if (err.name == "TokenExpiredError") {
-            isExpired = true;
+
+    //Checking database for emailId of user...
+    var emailId = ctx.request.body.emailId;
+    var params = {
+        TableName: "Users",
+        ProjectionExpression: 'emailId,password,userId',
+        KeyConditionExpression: "#ur = :email",
+        ExpressionAttributeNames: {
+            "#ur": "emailId"
+        },
+        ExpressionAttributeValues: {
+            ":email": emailId
         }
-    } console.log(":1" + isExpired);
-    console.log({ isExpired: ctx.token });
-    //check for direct login straight from signUp..  
-    if (ctx.token == undefined || isExpired) {
-        console.log(":2");
-        //Checking database for emailId of user...
-        var emailId = ctx.request.body.emailId;
-        var params = {
-            TableName: "Users",
-            ProjectionExpression: 'emailId,password,userId',
-            KeyConditionExpression: "#ur = :email",
-            ExpressionAttributeNames: {
-                "#ur": "emailId"
-            },
-            ExpressionAttributeValues: {
-                ":email": emailId
-            }
-        };
-        var db = new Promise((resolve, reject) => {
-            docClient.query(params, async (err, data) => {
-                if (err) {
-                    console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
-                    ctx.status = 401;
-                    ctx.body = { "Message": "Query Error" };
-                    reject(err);
+    };
+    var db = new Promise((resolve, reject) => {
+        docClient.query(params, async (err, data) => {
+            if (err) {
+                console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                ctx.status = 401;
+                ctx.body = { "Message": "Query Error" };
+                reject(err);
+            } else {
+                if ((Number(data.Count) < 1 || !bcrypt.compareSync(ctx.request.body.password, data.Items[0].password))) {
+                    ctx.status = 409;
+                    ctx.body = { "Message": "Incorrect LogIn Credentials" };
+                    reject({ "Message": "Incorrect LogIn Credentials" });
                 } else {
-                    console.log({ ":3": JSON.stringify(data) });
-                    if ((Number(data.Count) < 1 || !bcrypt.compareSync(ctx.request.body.password, data.Items[0].password))) {
-                        ctx.status = 409;
-                        ctx.body = { "Message": "User doesn't exist / check email or password" };
+                    var logInCredintails = data.Items[0];
+                    console.log(":8");
+                    var promiseLogIn = new Promise((resolve, reject) => {
+                        jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                console.log(":4");
+                                resolve(token);
+                            }
+                        });
+                    });
+                    await promiseLogIn.then((token) => {
+                        ctx.token = token;
                         resolve();
-                    } else {
-                        var logInCredintails = data.Items[0];
-                        console.log(":8");
-                        var promiseLogIn = new Promise((resolve, reject) => {
-                            jwt.sign(logInCredintails, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
-                                if (err) {
-                                    reject(err);
-                                }
-                                else {
-                                    console.log(":4");
-                                    resolve(token);
-                                }
-                            });
-                        });
-                        return promiseLogIn.then((token) => {
-                            ctx.token=token;
-                            console.log(":5");
-                            jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
-                                if (err) {
-                                    console.log({ "verify": err });
-                                    ctx.status = 412;
-                                    ctx.body = { "Message : 'Token verification problem' ": err };
-                                }
-                                else {
-                                    console.log(":7 : ");
-                                    ctx.verifiedData = data;
-                                    resolve();
-                                }
-                            });
-                        }).catch((err) => {
-                            ctx.status = 412;
-                            ctx.body = { "Message": { 'Token  signing problem : ': err } };
-                        });
-                    }
+                    }).catch((err) => {
+                        ctx.status = 412;
+                        ctx.body = { "Message": { 'Token  signing problem : ': err } };
+                        reject({ "Message": { 'Token  signing problem : ': err } });
+                    });
                 }
-            });
+            }
         });
-        return db.then(async () => {
-            console.log("dbs");
-            await next();
-        }).catch((err) => {
-            console.log(err);
-        });
-    }
-    return promiseLogIn.then((token) => {
+    });
+    return db.then(async () => {
+        console.log("dbs");
+        await next();
+    }).catch((err) => {
+        console.log(err);
+    });
+    /* return promiseLogIn.then((token) => {
         ctx.token = token;
         console.log(":5");
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
@@ -183,13 +158,13 @@ async function verifyLogIn(ctx, next) {
     }).catch((err) => {
         ctx.status = 412;
         ctx.body = { "Message": { 'Token  signing problem : ': err } };
-    });
+    }); */
 }
 
 //Middleware [ addTask ] to check for pre-existing task of same name
 async function checkDuplicateTask(ctx, next) {
 
-    var token=ctx.request.body.userCookie;
+    var token = ctx.request.body.userCookie;
     /* console.log("body",ctx.request.body);
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
@@ -305,8 +280,8 @@ async function checkDuplicateTask(ctx, next) {
 //Middleware [ deleteTask ] to check for the task existing
 async function deleteTask(ctx, next) {
 
-    var token=ctx.request.body.userCookie;
-    console.log("body",ctx.request.body);
+    var token = ctx.request.body.userCookie;
+    console.log("body", ctx.request.body);
     /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
@@ -363,7 +338,7 @@ async function deleteTask(ctx, next) {
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx, next) {
 
-    var token=ctx.request.body.userCookie;
+    var token = ctx.request.body.userCookie;
     /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
