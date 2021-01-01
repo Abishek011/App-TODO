@@ -14,7 +14,7 @@ app.use(bodyParser());
 const cors = require('cors');
 app.use(function(ctx, next) {
     ctx.headerSent("Access-Control-Allow-Origin", "*");
-    //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    ctx.headerSent("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 
