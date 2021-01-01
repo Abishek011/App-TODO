@@ -95,7 +95,7 @@ var signUp = async (ctx) => {
             } else {
                 //signing token for auto login
                 jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, token) => {
-                    ctx.body.cookie=token;
+                    ctx.body={cookie:token};
                     //ctx.cookies.set("signUpStatusTrue")
                 }); 
                 resolve();
