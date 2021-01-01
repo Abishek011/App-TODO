@@ -66,6 +66,7 @@ async function checkDuplicate(ctx, next) {
 //Middleware [ logIn ] to verify Authorization token & login credintials varification
 async function verifyLogIn(ctx, next) {
 
+    ctx.token=ctx.body.userCookie;
     var isExpired = false;
     try {
         jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
@@ -173,8 +174,8 @@ async function verifyLogIn(ctx, next) {
 //Middleware [ addTask ] to check for pre-existing task of same name
 async function checkDuplicateTask(ctx, next) {
 
-    var token;
-    console.log("body",ctx.request.body);
+    var token=ctx.body.userCookie;
+    /* console.log("body",ctx.request.body);
     var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
@@ -209,7 +210,7 @@ async function checkDuplicateTask(ctx, next) {
         ctx.body = { "Message ": "Error on authentication" };
     });
     
-    console.log(ctx.request);
+     */
 
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
@@ -289,9 +290,9 @@ async function checkDuplicateTask(ctx, next) {
 //Middleware [ deleteTask ] to check for the task existing
 async function deleteTask(ctx, next) {
 
-    var token;
+    var token=ctx.body.userCookie;
     console.log("body",ctx.request.body);
-    var emailId = "" + ctx.request.body.emailId;
+    /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
     var userId = ctx.request.body.userId;
@@ -323,8 +324,7 @@ async function deleteTask(ctx, next) {
         console.log(err);
         ctx.status = 409;
         ctx.body = { "Message ": "Error on authentication" };
-    });
-    var emailId;
+    }); */
 
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
@@ -338,19 +338,18 @@ async function deleteTask(ctx, next) {
     });
     await promiseToken.then(async (data) => {
         ctx.verifiedData = data;
-        emailId = data.emailId;
         await next();
     }).catch((err) => {
         ctx.status = 401;
-        ctx.body = { Message: "Token expired" };
+        ctx.body = { Message: err };
     });
 }
 
 //Middleware [ viewTask ] for token decoding..
 async function verifyView(ctx, next) {
 
-    var token;
-    var emailId = "" + ctx.request.body.emailId;
+    var token=ctx.body.userCookie;
+    /* var emailId = "" + ctx.request.body.emailId;
     var password = ctx.request.body.password;
     var userName = ctx.request.body.userName;
     const hashedPassword = bcrypt.hashSync(password, saltRounds);
@@ -381,7 +380,7 @@ async function verifyView(ctx, next) {
         console.log(err);
         ctx.status = 409;
         ctx.body = { "Message ": "Error on authentication" };
-    });
+    }); */
 
     var emailId;
     var promiseToken = new Promise((resolve, reject) => {
