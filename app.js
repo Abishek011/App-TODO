@@ -13,7 +13,7 @@ app.use(bodyParser());
 //For swagger server validation
 const cors = require('cors');
 app.use(function(ctx, next) {
-    ctx.header("Access-Control-Allow-Origin", "*");
+    ctx.headerSent("Access-Control-Allow-Origin", "*");
     //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
