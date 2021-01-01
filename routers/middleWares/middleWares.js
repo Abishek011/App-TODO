@@ -73,8 +73,8 @@ async function checkDuplicate(ctx, next) {
             }
         });
     });
-    return signPromise.then(()=>{
-        next();
+    return signPromise.then(async()=>{
+        await next();
     }).catch(()=>{
         ctx.status = 409;
         ctx.body = { "Message": 'User already exist' };
