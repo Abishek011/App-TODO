@@ -151,7 +151,7 @@ var logIn = (ctx) => {
         else {
             dashBoard.tasks = data.tasks;
         }
-        console.log(ctx.cookies.get("authToken"));
+        console.log(ctx.token("authToken"));
         ctx.body = {
             'cookie':ctx.cookies.get("authToken"),
             "dashBoard": dashBoard
