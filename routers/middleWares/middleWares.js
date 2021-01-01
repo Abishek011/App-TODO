@@ -28,6 +28,20 @@ const { v4: uuid4 } = require('uuid');
 //JWT 
 const jwt = require('jsonwebtoken');
 
+//Tokenexpiration check
+function isTokenExpired(token){
+    try {
+        jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
+    } catch (err) {
+        if (err.name == "TokenExpiredError") {
+            return false;
+        }
+    }
+    return true;
+
+}
+
+
 //Middleware [ signUp ] to check for already existing user
 async function checkDuplicate(ctx, next) {
     //console.log("called");
