@@ -11,12 +11,8 @@ const app = new koa();
 app.use(bodyParser());
 
 //For swagger server validation
-const cors = require('cors');
-app.use(function(ctx, next) {
-    ctx.headerSent("Access-Control-Allow-Origin", "*");
-    ctx.headerSent("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
+const cors = require('@koa/cors');
+app.use(cors());
 
 //Koa-Router
 const route = new router({
