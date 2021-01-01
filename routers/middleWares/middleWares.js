@@ -288,7 +288,42 @@ async function checkDuplicateTask(ctx, next) {
 
 //Middleware [ deleteTask ] to check for the task existing
 async function deleteTask(ctx, next) {
-    var token = ctx.cookies.get('authToken');
+
+    var token;
+    console.log("body",ctx.request.body);
+    var emailId = "" + ctx.request.body.emailId;
+    var password = ctx.request.body.password;
+    var userName = ctx.request.body.userName;
+    var userId = ctx.request.body.userId;
+    const hashedPassword = bcrypt.hashSync(password, saltRounds);
+    var params = {
+        TableName: "Users",
+        Item: {
+            "userId": userId,
+            "emailId": emailId,
+            "password": hashedPassword,
+            "userName": userName,
+            'tasks': []
+        },
+    };
+    console.log({ "params": 1 });
+    var promiseSign = new Promise((resolve, reject) => {
+        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, tokn) => {
+            if (err) {
+                reject(err);
+            }
+            token=tokn;
+            //ctx.cookies.set("signUpStatusTrue")
+            resolve();
+        });
+    });
+    await promiseSign.then(() => {
+        console.log("Added user : " + emailId);
+    }).catch((err) => {
+        console.log(err);
+        ctx.status = 409;
+        ctx.body = { "Message ": "Error on authentication" };
+    });
     var emailId;
 
     var promiseToken = new Promise((resolve, reject) => {
