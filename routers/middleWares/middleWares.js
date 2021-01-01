@@ -67,7 +67,7 @@ async function checkDuplicate(ctx, next) {
 async function verifyLogIn(ctx, next) {
 
     console.log(ctx.request.body);
-    ctx.token=ctx.body.request.userCookie;
+    ctx.token=ctx.request.body.userCookie;
     var isExpired = false;
     try {
         jwt.verify(ctx.token, process.env.SIGN_TOKEN_KEY)
