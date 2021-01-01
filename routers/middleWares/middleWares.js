@@ -148,6 +148,7 @@ async function verifyLogIn(ctx, next) {
 //Middleware [ addTask ] to check for pre-existing task of same name
 async function checkDuplicateTask(ctx, next) {
 
+    console.log("body",ctx.request.body);
     var token = ctx.request.body.userAuthCookie;
     /* console.log("body",ctx.request.body);
     var emailId = "" + ctx.request.body.emailId;
