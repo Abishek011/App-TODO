@@ -125,7 +125,7 @@ var addTask = (ctx) => {
         taskName: ctx.taskData.taskName,
         taskDescription: ctx.taskData.taskDescription,
         taskAddedTime: Date.now(),
-        taskStatus:'Pending...'
+        taskStatus:'Not Completed'
     };
     var emailId = ctx.verifiedData.emailId;
     var userId = ctx.verifiedData.userId;
@@ -266,7 +266,7 @@ var viewTask = (ctx) => {
                 "taskAddedTime": new Date(Date.now()).toString(),
                 "taskId": uuid4(),
                 "taskDescription": "No task Added yet, this is the defaut task",
-                "taskStatus":"Pending..."
+                "taskStatus":"Not Completed"
             }];
         }
         else {
