@@ -284,10 +284,10 @@ var viewTask = (ctx) => {
     });
 }
 
-var changeTaskStatus = async (verifiedData,taskName) => {
+var changeTaskStatus = async (ctx) => {
     console.log("erdfgvhbjnkm,l///",ctx.verifiedData);
 
-    //var taskName = ctx.verifiedData.taskName;
+    var taskName = ctx.request.body.taskName;
     var emailId = verifiedData.emailId;
     var tasks;
     var userDetails = {
