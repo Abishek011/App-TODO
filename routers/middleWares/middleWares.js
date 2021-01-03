@@ -232,6 +232,7 @@ async function changeTaskStatus(ctx, next) {
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             if (err) {
+                console.log(err);
                 reject(err);
             }
             else {
