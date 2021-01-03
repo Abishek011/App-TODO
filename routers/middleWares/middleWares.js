@@ -149,43 +149,6 @@ async function verifyLogIn(ctx, next) {
 async function checkDuplicateTask(ctx, next) {
 
     var token = ctx.request.body.userAuthCookie;
-    /* console.log("body",ctx.request.body);
-    var emailId = "" + ctx.request.body.emailId;
-    var password = ctx.request.body.password;
-    var userName = ctx.request.body.userName;
-    var userId = ctx.request.body.userId;
-    const hashedPassword = bcrypt.hashSync(password, saltRounds);
-    var params = {
-        TableName: "Users",
-        Item: {
-            "userId": userId,
-            "emailId": emailId,
-            "password": hashedPassword,
-            "userName": userName,
-            'tasks': []
-        },
-    };
-    console.log({ "params": 1 });
-    var promiseSign = new Promise((resolve, reject) => {
-        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, tokn) => {
-            if (err) {
-                reject(err);
-            }
-            token=tokn;
-            //ctx.cookies.set("signUpStatusTrue")
-            resolve();
-        });
-    });
-    await promiseSign.then(() => {
-        console.log("Added user : " + emailId);
-    }).catch((err) => {
-        console.log(err);
-        ctx.status = 409;
-        ctx.body = { "Message ": "Error on authentication" };
-    });
-    
-     */
-
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             if (err) {
@@ -261,45 +224,36 @@ async function checkDuplicateTask(ctx, next) {
     }
 }
 
-//Middleware [ deleteTask ] to check for the task existing
+//Middleware [ changeTaskStatus ] to verifyToken
+async function changeTaskStatus(ctx, next) {
+
+    var token = ctx.request.body.userAuthCookie;
+    console.log("body", ctx.request.body);
+    var promiseToken = new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(data);
+            }
+        });
+    });
+    await promiseToken.then(async (data) => {
+        ctx.verifiedData = data;
+        await next();
+    }).catch((err) => {
+        ctx.status = 401;
+        ctx.body = { Message: err };
+    });
+}
+
+
+//Middleware [ deleteTask ] to verify token
 async function deleteTask(ctx, next) {
 
     var token = ctx.request.body.userAuthCookie;
     console.log("body", ctx.request.body);
-    /* var emailId = "" + ctx.request.body.emailId;
-    var password = ctx.request.body.password;
-    var userName = ctx.request.body.userName;
-    var userId = ctx.request.body.userId;
-    const hashedPassword = bcrypt.hashSync(password, saltRounds);
-    var params = {
-        TableName: "Users",
-        Item: {
-            "userId": userId,
-            "emailId": emailId,
-            "password": hashedPassword,
-            "userName": userName,
-            'tasks': []
-        },
-    };
-    console.log({ "params": 1 });
-    var promiseSign = new Promise((resolve, reject) => {
-        jwt.sign(params.Item, process.env.SIGN_TOKEN_KEY, { expiresIn: '2d' }, (err, tokn) => {
-            if (err) {
-                reject(err);
-            }
-            token=tokn;
-            //ctx.cookies.set("signUpStatusTrue")
-            resolve();
-        });
-    });
-    await promiseSign.then(() => {
-        console.log("Added user : " + emailId);
-    }).catch((err) => {
-        console.log(err);
-        ctx.status = 409;
-        ctx.body = { "Message ": "Error on authentication" };
-    }); */
-
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             if (err) {
@@ -411,5 +365,6 @@ module.exports = {
     verifyLogIn,
     checkDuplicateTask,
     deleteTask,
-    verifyView
+    verifyView,
+    changeTaskStatus
 }

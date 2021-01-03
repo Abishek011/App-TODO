@@ -233,7 +233,7 @@ var deleteTask = async (ctx) => {
     });
 };
 
-//GET - view Tasks
+//POST - view Tasks
 var viewTask = (ctx) => {
     var loggerCredintails = ctx.verifiedData;
     console.log(loggerCredintails);
@@ -284,11 +284,79 @@ var viewTask = (ctx) => {
     });
 }
 
-//GET logOut
-var logOut = (ctx) => {
-    ctx.cookies.set("authToken", null);
-    ctx.body = { Message: "Logged out" }
-}
+var changeTaskStatus = () => {
+    var taskName = ctx.request.body.taskName;
+    var emailId = ctx.verifiedData.emailId;
+    var tasks;
+    var userDetails = {
+        TableName: 'Users',
+        ProjectionExpression: 'tasks',
+        KeyConditionExpression: "#email = :email",
+        ExpressionAttributeNames: {
+            "#email": 'emailId',
+        },
+        ExpressionAttributeValues: {
+            ":email": emailId
+        }
+    }
+    var promiseDashBoard = new Promise((resolve, reject) => {
+        docClient.query(userDetails, async (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                console.log(data);
+                resolve(data.Items[0].tasks);
+            }
+        });
+    });
+    await promiseDashBoard.then(async (data) => {
+        tasks = data;
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { "Error while accessing dashBoard data": err };
+    });
+    for (var i = 0; i < tasks.length; i++) {
+        if (new String(tasks[i].taskName).valueOf() == new String(taskName).valueOf()) {
+            tasks[i].taskName=taskName;
+            break;
+        }
+    }
+    var userId = ctx.verifiedData.userId;
+    var params = {
+        TableName: 'Users',
+        Key: {
+            "userId": userId,
+            "emailId": emailId
+        },
+        UpdateExpression: "set #Task=:newTask",
+        ExpressionAttributeNames: {
+            "#Task": 'tasks'
+        },
+        ExpressionAttributeValues: {
+            ":newTask": tasks,
+        },
+        ReturnValues: "UPDATED_NEW"
+    };
+    var promiseAddTask = new Promise((resolve, reject) => {
+        docClient.update(params, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
+    return promiseAddTask.then((data) => {
+        ctx.status=200;
+        ctx.body = { Message: "Task status updated" };
+    }).catch((err) => {
+        ctx.status = 409;
+        ctx.body = { Error: "problem while changing status" };
+        console.log(err);
+    });
+} 
+
+
 
 //Exporting all routes [createTable , deleteTable , signUp , login]
 module.exports = {
@@ -299,5 +367,5 @@ module.exports = {
     addTask,
     deleteTask,
     viewTask,
-    logOut
+    changeTaskStatus
 }

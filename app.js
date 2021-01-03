@@ -74,7 +74,7 @@ dashBoard.delete('/deleteTask',middleWare.deleteTask,routers.deleteTask);
 
 dashBoard.post('/viewTasks',middleWare.verifyView,routers.viewTask);
 
-route.get('/logOut',routers.logOut);
+dashBoard.post('/changeTaskStatus',middleWare.changeTaskStatus,routers.changeTaskStatus);
 
 routes.get('/',ctx=>{
     ctx.body="server running at 3000";
