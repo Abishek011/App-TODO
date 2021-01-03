@@ -244,7 +244,7 @@ async function changeTaskStatus(ctx, next) {
         await next();
     }).catch((err) => {
         ctx.status = 401;
-        console.log((JSON.stringify(err)));
+        console.log("(JSON.stringify(err))");
         ctx.body = { Message: err };
     });
 }
