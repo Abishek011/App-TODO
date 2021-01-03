@@ -317,7 +317,7 @@ var changeTaskStatus = async (ctx) => {
     });
     for (var i = 0; i < tasks.length; i++) {
         if (new String(tasks[i].taskName).valueOf() == new String(taskName).valueOf()) {
-            tasks[i].taskName=taskName;
+            tasks[i].taskStatus=(tasks[i].taskStatus.includes("Not Completed"))?"Completed":"Not Completed";
             break;
         }
     }
