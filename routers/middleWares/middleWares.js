@@ -239,8 +239,7 @@ async function changeTaskStatus(ctx, next) {
     return promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         ctx.verifiedData.taskName=ctx.request.body.taskName;
-        console.log(ctx.verifiedData);
-        await next();
+        await next(ctx.verifiedData,ctx.request.body.taskName);
     });
 }
 
