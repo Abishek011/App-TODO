@@ -265,7 +265,7 @@ var viewTask = (ctx) => {
                 "taskName": "default task",
                 "taskAddedTime": new Date(Date.now()).toString(),
                 "taskId": uuid4(),
-                "taskDescription": "No task Added yet, this is the defaut task",
+                "taskDescription": "No task Added yet, this is the defaut task.It will be deleted when atleast one task is added.",
                 "taskStatus":"Not Completed"
             }];
         }
