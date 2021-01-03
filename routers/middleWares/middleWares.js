@@ -259,20 +259,12 @@ async function deleteTask(ctx, next) {
     console.log("body", ctx.request.body);
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            else {
                 resolve(data);
-            }
         });
     });
     await promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         await next();
-    }).catch((err) => {
-        ctx.status = 401;
-        ctx.body = { Message: err };
     });
 }
 
