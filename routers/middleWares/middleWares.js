@@ -239,10 +239,6 @@ async function changeTaskStatus(ctx, next) {
     return promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         await next();
-    }).catch((err) => {
-        ctx.status = 401;
-        console.log("(JSON.stringify(err))");
-        ctx.body = { Message: err };
     });
 }
 
