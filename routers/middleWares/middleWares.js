@@ -232,13 +232,8 @@ async function changeTaskStatus(ctx, next) {
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             console.log("asdfghjkl",err,"12345678765432",data);
-            if (err) {
-                console.log("asd1234567");
-                reject(err);
-            }
-            else {
+            
                 resolve(data);
-            }
         });
     });
     return promiseToken.then(async (data) => {
@@ -255,7 +250,7 @@ async function changeTaskStatus(ctx, next) {
 //Middleware [ deleteTask ] to verify token
 async function deleteTask(ctx, next) {
 
-    var token;// = ctx.request.body.userAuthCookie;
+    var token= ctx.request.body.userAuthCookie;
     console.log("body", ctx.request.body);
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
