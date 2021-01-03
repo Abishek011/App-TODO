@@ -231,15 +231,21 @@ async function changeTaskStatus(ctx, next) {
     console.log("body", ctx.request.body,process.env.SIGN_TOKEN_KEY);
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
-            console.log("asdfghjkl",err,"12345678765432",data);
-            
+            if(err){
+                reject(err);
+            }
+            else{
                 resolve(data);
+            }
         });
     });
     return promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         ctx.verifiedData.taskName=ctx.request.body.taskName;
-        await next(ctx.verifiedData,ctx.request.body.taskName);
+        await next();
+    }).catch((err)=>{
+        ctx.status=401;
+        ctx.body={Message:"Authentication error"}
     });
 }
 
