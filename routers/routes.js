@@ -285,9 +285,9 @@ var viewTask = (ctx) => {
 }
 
 var changeTaskStatus = async (ctx) => {
-    console.log("erdfgvhbjnkm,l///".ctx.request.body);
+    console.log("erdfgvhbjnkm,l///".ctx.verifiedData);
 
-    var taskName = ctx.request.body.taskName;
+    var taskName = ctx.verifiedData.taskName;
     var emailId = ctx.verifiedData.emailId;
     var tasks;
     var userDetails = {
