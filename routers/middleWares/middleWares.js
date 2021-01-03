@@ -228,7 +228,7 @@ async function checkDuplicateTask(ctx, next) {
 async function changeTaskStatus(ctx, next) {
 
     var token = ctx.request.body.userAuthCookie;
-    console.log("body", ctx.request.body);
+    console.log("body", ctx.request.body,process.env.SIGN_TOKEN_KEY);
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             console.log("asdfghjkl",err,"12345678765432",data);
