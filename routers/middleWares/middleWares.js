@@ -240,6 +240,7 @@ async function changeTaskStatus(ctx, next) {
             }
         });
     });
+    
     return promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         await next();
