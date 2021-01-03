@@ -232,7 +232,7 @@ async function changeTaskStatus(ctx, next) {
     var promiseToken = new Promise((resolve, reject) => {
         jwt.verify(token, process.env.SIGN_TOKEN_KEY, (err, data) => {
             if (err) {
-                console.log(err);
+                console.log("asdfghjkl");
                 reject(err);
             }
             else {
@@ -240,7 +240,6 @@ async function changeTaskStatus(ctx, next) {
             }
         });
     });
-    
     return promiseToken.then(async (data) => {
         ctx.verifiedData = data;
         await next();
