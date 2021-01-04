@@ -260,6 +260,8 @@ var viewTask = (ctx) => {
     });
     return promiseDashBoard.then((data) => {
         var tasks;
+
+        //
         if (data.tasks.length == 0) {
             tasks = [{
                 "taskName": "default task",
