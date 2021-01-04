@@ -65,7 +65,6 @@ route.delete('/deleteTable',routers.deleteTable);
 //user route for signUp operation 
 routes.post('/user', middleWare.checkDuplicate , routers.signUp);
 
-//login route for user login
 route.post('/logIn',middleWare.verifyLogIn,routers.logIn);
 
 dashBoard.post('/addTask',middleWare.checkDuplicateTask,routers.addTask);
